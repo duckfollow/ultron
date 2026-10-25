@@ -1076,14 +1076,21 @@ aside nav {
   font-size: 13px;
 }
 .sidebar.collapsed .ssh-profile {
-  padding: 10px 7px;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 0;
   justify-content: center;
 }
 .sidebar.collapsed .ssh-profile > span {
   display: none;
 }
 .sidebar.collapsed .ssh-profile-more {
+  position: absolute;
+  right: 0;
+  top: 0;
   width: 16px;
+  height: 16px;
+  padding: 0;
 }
 .sidebar.collapsed .ssh-profile-list {
   scrollbar-width: none;
