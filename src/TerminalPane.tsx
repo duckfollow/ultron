@@ -51,6 +51,7 @@ export function TerminalPane({
 }) {
   const [attempt, setAttempt] = useState(0);
   const [connecting, setConnecting] = useState(Boolean(profileId));
+  const [hasOutput, setHasOutput] = useState(false);
   const [failure, setFailure] = useState<{
     title: string;
     details: string;
@@ -63,7 +64,20 @@ export function TerminalPane({
   callbacks.current = { register, onReady, onTitle, onExit, onSize };
   useEffect(() => {
     setConnecting(Boolean(profileId));
+    setHasOutput(false);
     setFailure(null);
+    const startedAt = performance.now();
+    let animationTimer: ReturnType<typeof setTimeout> | undefined;
+    let outputSeen = false;
+    const revealTerminal = () => {
+      if (outputSeen) return;
+      outputSeen = true;
+      setHasOutput(true);
+      animationTimer = setTimeout(
+        () => setConnecting(false),
+        Math.max(0, 800 - (performance.now() - startedAt)),
+      );
+    };
     let diagnosticTail = "";
     const decoder = new TextDecoder();
     const fail = (message: string) => {
@@ -169,7 +183,7 @@ export function TerminalPane({
             decoder.decode(new Uint8Array(event.bytes), { stream: true })
           ).slice(-16384);
           // Any SSH output may be a password, OTP, or host-key question. Never cover it.
-          if (event.bytes.length) setConnecting(false);
+          if (event.bytes.length) revealTerminal();
         }
         term.write(new Uint8Array(event.bytes), () => {
           pendingAck += event.bytes.length;
@@ -236,6 +250,7 @@ export function TerminalPane({
       });
     return () => {
       disposed = true;
+      clearTimeout(animationTimer);
       observer.disconnect();
       resize.dispose();
       data.dispose();
@@ -264,7 +279,11 @@ export function TerminalPane({
         aria-label="Terminal session"
       />
       {visible && connecting && (
-        <div className="ssh-connecting" role="status" aria-live="polite">
+        <div
+          className={`ssh-connecting ${hasOutput ? "compact" : ""}`}
+          role="status"
+          aria-live="polite"
+        >
           <div className="ssh-route" aria-hidden="true">
             <Monitor size={25} />
             <span className="ssh-dots">
@@ -274,7 +293,7 @@ export function TerminalPane({
             </span>
             <Server size={25} />
           </div>
-          <span>Connecting…</span>
+          <span>{hasOutput ? "SSH session" : "Connecting…"}</span>
         </div>
       )}
       {visible && failure && (

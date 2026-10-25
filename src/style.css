@@ -1272,3 +1272,24 @@ aside nav {
     monospace;
   user-select: text;
 }
+
+.ssh-connecting.compact {
+  inset: auto 12px 12px auto;
+  flex-direction: row;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid #3f3037;
+  border-radius: 9px;
+  background: #211b20e8;
+  font-size: 11px;
+}
+.ssh-connecting.compact .ssh-route {
+  gap: 12px;
+}
+.ssh-connecting.compact .ssh-route svg {
+  width: 16px;
+  height: 16px;
+}
+.ssh-connecting.compact .ssh-dots {
+  gap: 5px;
+}
