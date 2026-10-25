@@ -5,7 +5,9 @@ A standalone local terminal app for macOS. Separate repository, application iden
 ## First Alpha
 
 - Real login shell through a native pseudo-terminal (PTY), not simulated command output.
-- Up to 12 independent terminals. Switching tabs preserves processes and scrollback.
+- Up to 12 independent terminal sessions. Each tab supports up to 4 panes, split left/right or top/bottom. Switching tabs and splitting preserves existing processes and scrollback.
+- Drag a divider to resize panes, use its arrow keys, or double-click it to restore an even split. Small panes must be enlarged before splitting further.
+- Double-click a tab (or use its … button) to set a name and color. Custom names remain fixed when the shell title changes; a blank name restores automatic titles.
 - ANSI colors, Unicode, interactive programs, Ctrl+C, terminal resizing.
 - Find output, clear scrollback, font size controls and keyboard shortcuts.
 - Dark interface with a custom red identity. No AI service, telemetry or cloud account.
@@ -23,6 +25,7 @@ The app uses port 1432 and the identifier `com.duckfollow.ultron`.
 
 ```sh
 npm run build:web
+npm test
 npm run test:native
 npm run build
 ```
@@ -31,7 +34,7 @@ npm run build
 
 ## Behavior
 
-New terminals start your `$SHELL` as an interactive login shell in `$HOME`. Commands run with your normal user permissions. Closing a terminal terminates its shell and signals its foreground job. Detached/background jobs that deliberately outlive the shell are not managed by Ultron. Existing terminal windows and other apps are unaffected.
+New terminals start your `$SHELL` as an interactive login shell in `$HOME`. Commands run with your normal user permissions. Closing a pane terminates only its shell and signals its foreground job. Closing a whole tab closes all of its panes. Detached/background jobs that deliberately outlive the shell are not managed by Ultron. Existing terminal windows and other apps are unaffected.
 
 Scrollback is limited to 10,000 lines. Output is streamed as bytes to preserve UTF-8 boundaries, with acknowledgement-based backpressure. Sessions are not restored after quitting. The app does not execute commands automatically or interpret natural-language instructions.
 
@@ -40,3 +43,16 @@ Scrollback is limited to 10,000 lines. Output is streamed as bytes to preserve U
 - [xterm.js](https://xtermjs.org/docs/)
 - [portable-pty](https://docs.rs/portable-pty/)
 - [Tauri IPC channels](https://v2.tauri.app/develop/calling-frontend/)
+
+## Split and tab shortcuts
+
+| Action | Shortcut |
+| --- | --- |
+| Split left / right | ⌘ D |
+| Split top / bottom | ⌘ ⇧ D |
+| Focus next pane | ⌘ J |
+| Close active pane | ⌘ W |
+| Close whole tab | ⌘ ⇧ W |
+| Switch tab | ⌘ 1–9 |
+
+Find, clear scrollback and font controls affect the focused pane. Names, colors and layouts are session-only, like the terminals themselves. Closing a pane does not close neighboring panes.

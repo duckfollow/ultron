@@ -574,3 +574,232 @@ footer > div {
 .help::backdrop {
   background: #0009;
 }
+/* Session surfaces stay mounted while the split layout changes. */
+.tab-stage {
+  position: absolute;
+  inset: 0;
+}
+.tab-stage[hidden] {
+  display: none;
+}
+.pane-frame {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.pane-content {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.is-split .pane-frame {
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+.is-split .pane-frame.focused {
+  border-color: color-mix(in srgb, var(--tab-color) 65%, transparent);
+}
+.pane-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  flex-shrink: 0;
+  background: #17181d;
+  padding: 0 3px 0 7px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  color: #767b88;
+}
+.focused .pane-heading {
+  color: var(--tab-color);
+}
+.pane-focus {
+  justify-content: flex-start;
+  min-width: 0;
+  overflow: hidden;
+  font:
+    10px Menlo,
+    monospace;
+  gap: 8px;
+}
+.pane-focus small {
+  color: #646976;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+  font:
+    9px Menlo,
+    monospace;
+}
+.pane-heading .icon-button {
+  height: 22px;
+  width: 22px;
+}
+.pane-divider {
+  position: absolute;
+  z-index: 3;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline-offset: -2px;
+}
+.pane-divider.columns {
+  width: 8px !important;
+  transform: translateX(-50%);
+  cursor: col-resize;
+}
+.pane-divider.rows {
+  height: 8px !important;
+  transform: translateY(-50%);
+  cursor: row-resize;
+}
+.pane-divider span {
+  background: #393c47;
+  border-radius: 2px;
+  pointer-events: none;
+}
+.pane-divider.columns span {
+  width: 2px;
+  height: 30px;
+}
+.pane-divider.rows span {
+  width: 30px;
+  height: 2px;
+}
+.pane-divider:hover span,
+.pane-divider:focus-visible span {
+  background: var(--tab-color);
+}
+.pane-divider:focus-visible {
+  outline: 1px solid var(--tab-color);
+}
+.tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tab > button:first-child {
+  min-width: 0;
+}
+.tab .pane-count {
+  color: #989dab;
+  font:
+    9px Menlo,
+    monospace;
+  background: #292c35;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+.tab-settings {
+  width: 22px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #747886;
+  border-radius: 4px;
+}
+.tab-settings:hover {
+  background: #282a32;
+}
+.tab.active {
+  border-top-color: var(--tab-color);
+}
+.tab.active > button:first-child > svg {
+  color: var(--tab-color);
+}
+.session.selected {
+  border-color: color-mix(in srgb, var(--tab-color) 35%, transparent);
+  background: color-mix(in srgb, var(--tab-color) 10%, #17181d);
+  color: color-mix(in srgb, var(--tab-color) 65%, #fff);
+}
+.tab-color-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tab-color);
+  flex-shrink: 0;
+}
+.status-line,
+.environment i {
+  background: var(--tab-color, #f2747c);
+}
+.topbar > div {
+  min-width: 0;
+}
+.topbar strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 550px;
+}
+.tab-appearance {
+  width: 380px;
+}
+.tab-appearance label,
+.tab-appearance legend {
+  display: block;
+  font-size: 11px;
+  color: #b5bac7;
+  margin-bottom: 9px;
+}
+.tab-appearance input {
+  width: 100%;
+  border: 1px solid #3b3f4c;
+  border-radius: 6px;
+  background: #111217;
+  padding: 10px 12px;
+  color: #e4e6ed;
+  font-size: 13px;
+}
+.tab-appearance p {
+  margin: 8px 0 22px;
+}
+.tab-appearance fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.tab-colors {
+  display: flex;
+  gap: 12px;
+}
+.tab-colors button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #16171c;
+  outline-offset: 3px;
+}
+.tab-colors button[aria-pressed="true"] {
+  outline: 2px solid #eee;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+.subtle-button {
+  padding: 8px 12px;
+  color: #9399a8;
+  font-size: 12px;
+}
+.save-appearance {
+  padding: 8px 19px;
+  border-radius: 5px;
+  background: #f2747c;
+  color: #1b1216;
+  font-size: 12px;
+  font-weight: 600;
+}
+.help {
+  max-height: 90vh;
+  overflow: auto;
+}

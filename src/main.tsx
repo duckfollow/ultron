@@ -1,102 +1,209 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type CSSProperties } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Terminal,
   Plus,
   X,
   Search,
-  ChevronDown,
   CircleHelp,
   Eraser,
   Minus,
   Command,
   ArrowUp,
   ArrowDown,
+  Columns2,
+  Rows2,
+  Ellipsis,
+  Palette,
 } from "lucide-react";
+import type { TerminalHandle } from "./TerminalPane";
+import { makeTab, makePane, type Tab, type Pane } from "./workspace-types";
 import {
-  TerminalPane,
-  type TerminalHandle,
-  type SessionInfo,
-} from "./TerminalPane";
+  colors,
+  layoutRects,
+  removePane,
+  resizeSplit,
+  splitLayout,
+  tabName,
+  type Axis,
+} from "./workspace-model";
+import { SplitWorkspace } from "./SplitWorkspace";
+import { TabAppearance } from "./TabAppearance";
 import "./style.css";
-type Tab = {
-  key: string;
-  number: number;
-  title: string;
-  state: "starting" | "live" | "ended";
-  info?: SessionInfo;
-  error?: string;
-  cols: number;
-  rows: number;
-};
-const makeTab = (number: number): Tab => ({
-  key: crypto.randomUUID(),
-  number,
-  title: "Shell",
-  state: "starting",
-  cols: 80,
-  rows: 24,
-});
 const firstTab = makeTab(1);
 function App() {
-  const [tabs, setTabs] = useState<Tab[]>([firstTab]);
-  const [active, setActive] = useState(firstTab.key);
+  const [tabs, setTabs] = useState<Tab[]>([firstTab]),
+    [active, setActive] = useState(firstTab.key);
   const [find, setFind] = useState(false),
     [query, setQuery] = useState(""),
-    [help, setHelp] = useState(false);
+    [help, setHelp] = useState(false),
+    [appearance, setAppearance] = useState<string | null>(null);
+  const [stageSize, setStageSize] = useState({ width: 1000, height: 600 });
   const handles = useRef(new Map<string, TerminalHandle>()),
     nextNumber = useRef(2),
     findInput = useRef<HTMLInputElement>(null),
-    helpDialog = useRef<HTMLDialogElement>(null);
-  const current = tabs.find((tab) => tab.key === active);
-  function update(key: string, patch: Partial<Tab>) {
-    setTabs((old) =>
-      old.map((tab) => (tab.key === key ? { ...tab, ...patch } : tab)),
+    helpDialog = useRef<HTMLDialogElement>(null),
+    stage = useRef<HTMLDivElement>(null);
+  const current = tabs.find((tab) => tab.key === active),
+    pane = current?.panes.find((p) => p.id === current.activePane);
+  const sessionCount = tabs.reduce((count, tab) => count + tab.panes.length, 0);
+  const appearanceTab = tabs.find((tab) => tab.key === appearance);
+  const colorValue = (tab: Tab) =>
+    colors.find((c) => c.id === tab.color)!.value;
+  const tabStyle = (tab: Tab) =>
+    ({ "--tab-color": colorValue(tab) }) as CSSProperties;
+  const name = (tab: Tab) =>
+    tabName(
+      tab.number,
+      tab.panes.find((p) => p.id === tab.activePane)?.title ?? "Shell",
+      tab.customName,
     );
+  const handle = () => (pane ? handles.current.get(pane.id) : undefined);
+  function updateTab(id: string, change: (tab: Tab) => Tab) {
+    setTabs((old) => old.map((tab) => (tab.key === id ? change(tab) : tab)));
   }
-  function add() {
-    if (tabs.length >= 12) return;
-    const tab = makeTab(nextNumber.current++);
-    setTabs((old) => [...old, tab]);
-    setActive(tab.key);
-    setFind(false);
+  function updatePane(tabId: string, id: string, patch: Partial<Pane>) {
+    updateTab(tabId, (tab) => ({
+      ...tab,
+      panes: tab.panes.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
   }
-  function close(key: string) {
-    const index = tabs.findIndex((tab) => tab.key === key);
-    const remaining = tabs.filter((tab) => tab.key !== key);
-    setTabs(remaining);
-    if (active === key)
-      setActive(remaining[Math.min(index, remaining.length - 1)]?.key ?? "");
-  }
-  function select(key: string) {
-    handles.current.get(active)?.find("");
-    setActive(key);
+  function clearSearch() {
+    handle()?.find("");
     setFind(false);
     setQuery("");
   }
+  function select(id: string) {
+    clearSearch();
+    setActive(id);
+  }
+  function add() {
+    if (sessionCount >= 12) return;
+    const tab = makeTab(nextNumber.current++);
+    clearSearch();
+    setTabs((old) => [...old, tab]);
+    setActive(tab.key);
+  }
+  function closeTab(id: string) {
+    clearSearch();
+    const index = tabs.findIndex((tab) => tab.key === id),
+      remaining = tabs.filter((tab) => tab.key !== id);
+    setTabs(remaining);
+    if (active === id)
+      setActive(remaining[Math.min(index, remaining.length - 1)]?.key ?? "");
+  }
+  function focusPane(tabId: string, id: string) {
+    if (tabId !== active) return;
+    updateTab(tabId, (tab) =>
+      tab.activePane === id ? tab : { ...tab, activePane: id },
+    );
+    if (current?.activePane !== id) clearSearch();
+  }
+  function closePane(tabId: string, id: string) {
+    const tab = tabs.find((t) => t.key === tabId);
+    if (!tab) return;
+    if (tab.panes.length === 1) {
+      closeTab(tabId);
+      return;
+    }
+    clearSearch();
+    const index = tab.panes.findIndex((p) => p.id === id);
+    updateTab(tabId, (old) => {
+      const panes = old.panes.filter((p) => p.id !== id);
+      return {
+        ...old,
+        panes,
+        layout: removePane(old.layout, id)!,
+        activePane:
+          old.activePane === id
+            ? panes[Math.min(index, panes.length - 1)].id
+            : old.activePane,
+      };
+    });
+  }
+  function canSplit(axis: Axis) {
+    if (!current || !pane || sessionCount >= 12 || current.panes.length >= 4)
+      return false;
+    const rect = layoutRects(current.layout).panes.get(pane.id)!;
+    return axis === "columns"
+      ? rect.width * stageSize.width >= 330
+      : rect.height * stageSize.height >= 250;
+  }
+  function split(axis: Axis) {
+    if (!current || !pane || !canSplit(axis)) return;
+    const newPane = makePane(),
+      id = current.key,
+      target = pane.id;
+    clearSearch();
+    updateTab(id, (tab) => ({
+      ...tab,
+      panes: [...tab.panes, newPane],
+      layout: splitLayout(
+        tab.layout,
+        target,
+        newPane.id,
+        crypto.randomUUID(),
+        axis,
+      ),
+      activePane: newPane.id,
+    }));
+  }
+  function nextPane() {
+    if (!current) return;
+    const order = [...layoutRects(current.layout).panes.keys()];
+    const id = order[(order.indexOf(current.activePane) + 1) % order.length];
+    focusPane(current.key, id);
+    handles.current.get(id)?.focus();
+  }
+  function closeAppearance() {
+    setAppearance(null);
+    requestAnimationFrame(() => handle()?.focus());
+  }
+  function dismissSearch() {
+    clearSearch();
+    handle()?.focus();
+  }
+  useEffect(() => {
+    const element = stage.current!;
+    const observer = new ResizeObserver(() => {
+      const rect = element.getBoundingClientRect();
+      setStageSize({ width: rect.width, height: rect.height });
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     function keydown(event: KeyboardEvent) {
-      if (!event.metaKey) return;
+      if (!event.metaKey || help || appearance) return;
       const key = event.key.toLowerCase();
       if (key === "t") {
         event.preventDefault();
         add();
       } else if (key === "w") {
         event.preventDefault();
-        if (current) close(active);
+        if (current && pane) {
+          if (event.shiftKey) closeTab(current.key);
+          else closePane(current.key, pane.id);
+        }
+      } else if (key === "d") {
+        event.preventDefault();
+        split(event.shiftKey ? "rows" : "columns");
+      } else if (key === "j") {
+        event.preventDefault();
+        nextPane();
       } else if (key === "k") {
         event.preventDefault();
-        handles.current.get(active)?.clear();
+        handle()?.clear();
       } else if (key === "f") {
         event.preventDefault();
         setFind(true);
         findInput.current?.focus();
       } else if (key === "=" || key === "+") {
         event.preventDefault();
-        handles.current.get(active)?.zoom(1);
+        handle()?.zoom(1);
       } else if (key === "-") {
         event.preventDefault();
-        handles.current.get(active)?.zoom(-1);
+        handle()?.zoom(-1);
       } else if (/^[1-9]$/.test(key) && tabs[Number(key) - 1]) {
         event.preventDefault();
         select(tabs[Number(key) - 1].key);
@@ -111,13 +218,14 @@ function App() {
   useEffect(() => {
     if (help) helpDialog.current?.showModal();
   }, [help]);
-  function dismissSearch() {
-    setFind(false);
-    setQuery("");
-    handles.current.get(active)?.find("");
-    handles.current.get(active)?.focus();
-  }
-  const shell = current?.info?.shell.split("/").pop() ?? "shell";
+  const splitHint = (axis: Axis) =>
+    canSplit(axis)
+      ? `${axis === "columns" ? "Split left / right (⌘ D)" : "Split top / bottom (⌘ ⇧ D)"}`
+      : sessionCount >= 12
+        ? "Maximum 12 terminal sessions"
+        : current && current.panes.length >= 4
+          ? "Maximum 4 panes per tab"
+          : "Make the active pane larger to split";
   return (
     <main className="app">
       <aside>
@@ -136,7 +244,7 @@ function App() {
         <button
           className="new-session"
           onClick={add}
-          disabled={tabs.length >= 12}
+          disabled={sessionCount >= 12}
         >
           <Plus size={16} /> New terminal <kbd>⌘ T</kbd>
         </button>
@@ -148,24 +256,29 @@ function App() {
             <button
               key={tab.key}
               className={`session ${active === tab.key ? "selected" : ""}`}
+              style={tabStyle(tab)}
               onClick={() => select(tab.key)}
+              onDoubleClick={() => setAppearance(tab.key)}
+              onContextMenu={(event) => {
+                event.preventDefault();
+                setAppearance(tab.key);
+              }}
+              title="Double-click to rename or change color"
             >
               <Terminal size={15} />
               <div>
-                <span>
-                  {tab.title === "Shell"
-                    ? `Terminal ${String(tab.number).padStart(2, "0")}`
-                    : `${String(tab.number).padStart(2, "0")} · ${tab.title}`}
-                </span>
+                <span>{name(tab)}</span>
                 <small>
-                  {tab.state === "starting"
-                    ? "Starting shell…"
-                    : tab.state === "ended"
-                      ? "Session ended"
-                      : `${tab.info?.shell.split("/").pop()} · local`}
+                  {tab.panes.length > 1
+                    ? `${tab.panes.length} panes · local`
+                    : tab.panes[0].state === "starting"
+                      ? "Starting shell…"
+                      : tab.panes[0].state === "ended"
+                        ? "Session ended"
+                        : `${tab.panes[0].info?.shell.split("/").pop()} · local`}
                 </small>
               </div>
-              <i className={`state-dot ${tab.state}`} />
+              <i className="tab-color-dot" />
             </button>
           ))}
         </nav>
@@ -182,20 +295,19 @@ function App() {
           </small>
         </div>
       </aside>
-      <section className="workspace">
+      <section
+        className="workspace"
+        style={current ? tabStyle(current) : undefined}
+      >
         <header className="topbar">
           <div>
             <span className="breadcrumb">Workspace</span>
             <span className="slash">/</span>
-            <strong>
-              {current
-                ? `Terminal ${String(current.number).padStart(2, "0")}`
-                : "Welcome"}
-            </strong>
+            <strong>{current ? name(current) : "Welcome"}</strong>
           </div>
           <span className="environment">
             <i />
-            {shell} <ChevronDown size={12} />
+            {pane?.info?.shell.split("/").pop() ?? "shell"}
           </span>
         </header>
         <div className="tabbar" role="tablist" aria-label="Open terminals">
@@ -203,21 +315,37 @@ function App() {
             <div
               className={`tab ${active === tab.key ? "active" : ""}`}
               key={tab.key}
+              style={tabStyle(tab)}
+              onContextMenu={(event) => {
+                event.preventDefault();
+                setAppearance(tab.key);
+              }}
             >
               <button
                 role="tab"
                 aria-selected={active === tab.key}
                 onClick={() => select(tab.key)}
+                onDoubleClick={() => setAppearance(tab.key)}
+                title={name(tab)}
               >
                 <Terminal size={13} />
-                {tab.title === "Shell"
-                  ? `Terminal ${String(tab.number).padStart(2, "0")}`
-                  : `${String(tab.number).padStart(2, "0")} · ${tab.title}`}
+                <span className="tab-label">{name(tab)}</span>
+                {tab.panes.length > 1 && (
+                  <small className="pane-count">{tab.panes.length}</small>
+                )}
+              </button>
+              <button
+                className="tab-settings"
+                aria-label={`Edit appearance of ${name(tab)}`}
+                onClick={() => setAppearance(tab.key)}
+                title="Rename / color"
+              >
+                <Ellipsis size={13} />
               </button>
               <button
                 className="tab-close"
-                aria-label={`Close terminal ${tab.number}`}
-                onClick={() => close(tab.key)}
+                aria-label={`Close tab ${tab.number}`}
+                onClick={() => closeTab(tab.key)}
               >
                 <X size={12} />
               </button>
@@ -226,7 +354,7 @@ function App() {
           <button
             className="icon-button add-tab"
             onClick={add}
-            disabled={tabs.length >= 12}
+            disabled={sessionCount >= 12}
             aria-label="New terminal"
             title="New terminal (⌘ T)"
           >
@@ -236,21 +364,51 @@ function App() {
         <div className="terminal-toolbar">
           <span>
             <span className="status-line" />
-            {current?.state === "ended" ? "SESSION ENDED" : "TERMINAL"}
-            <small>{current?.info?.cwd ?? "LOCAL SHELL"}</small>
+            {pane?.state === "ended" ? "SESSION ENDED" : "TERMINAL"}
+            <small title="Starting directory">
+              {pane?.info?.cwd ?? "LOCAL SHELL"}
+            </small>
           </span>
           <div>
             <button
               className="icon-button"
+              aria-label="Split left / right"
+              title={splitHint("columns")}
+              disabled={!canSplit("columns")}
+              onClick={() => split("columns")}
+            >
+              <Columns2 size={15} />
+            </button>
+            <button
+              className="icon-button"
+              aria-label="Split top / bottom"
+              title={splitHint("rows")}
+              disabled={!canSplit("rows")}
+              onClick={() => split("rows")}
+            >
+              <Rows2 size={15} />
+            </button>
+            <button
+              className="icon-button"
+              aria-label="Tab appearance"
+              title="Rename / color"
+              disabled={!current}
+              onClick={() => setAppearance(active)}
+            >
+              <Palette size={14} />
+            </button>
+            <span className="divider" />
+            <button
+              className="icon-button"
               aria-label="Decrease font size"
-              onClick={() => handles.current.get(active)?.zoom(-1)}
+              onClick={() => handle()?.zoom(-1)}
             >
               <Minus size={13} />
             </button>
             <button
               className="icon-button"
               aria-label="Increase font size"
-              onClick={() => handles.current.get(active)?.zoom(1)}
+              onClick={() => handle()?.zoom(1)}
             >
               <Plus size={13} />
             </button>
@@ -270,7 +428,7 @@ function App() {
               className="icon-button"
               aria-label="Clear scrollback"
               title="Clear scrollback (⌘ K)"
-              onClick={() => handles.current.get(active)?.clear()}
+              onClick={() => handle()?.clear()}
             >
               <Eraser size={14} />
             </button>
@@ -283,28 +441,28 @@ function App() {
               ref={findInput}
               value={query}
               aria-label="Find in terminal output"
-              placeholder="Find in terminal…"
+              placeholder="Find in active pane…"
               onChange={(event) => {
                 setQuery(event.target.value);
-                handles.current.get(active)?.find(event.target.value);
+                handle()?.find(event.target.value);
               }}
               onKeyDown={(event) => {
                 if (event.key === "Escape") dismissSearch();
                 else if (event.key === "Enter")
-                  handles.current.get(active)?.find(query, event.shiftKey);
+                  handle()?.find(query, event.shiftKey);
               }}
             />
             <button
               className="icon-button"
               aria-label="Previous match"
-              onClick={() => handles.current.get(active)?.find(query, true)}
+              onClick={() => handle()?.find(query, true)}
             >
               <ArrowUp size={13} />
             </button>
             <button
               className="icon-button"
               aria-label="Next match"
-              onClick={() => handles.current.get(active)?.find(query)}
+              onClick={() => handle()?.find(query)}
             >
               <ArrowDown size={13} />
             </button>
@@ -317,19 +475,25 @@ function App() {
             </button>
           </div>
         )}
-        <div className="terminal-stage">
+        <div ref={stage} className="terminal-stage">
           {tabs.map((tab) => (
-            <TerminalPane
+            <SplitWorkspace
               key={tab.key}
-              active={active === tab.key}
-              register={(handle) => {
-                if (handle) handles.current.set(tab.key, handle);
-                else handles.current.delete(tab.key);
+              tab={tab}
+              visible={active === tab.key}
+              register={(id, terminal) => {
+                if (terminal) handles.current.set(id, terminal);
+                else handles.current.delete(id);
               }}
-              onReady={(info) => update(tab.key, { info, state: "live" })}
-              onTitle={(title) => update(tab.key, { title: title || "Shell" })}
-              onExit={(error) => update(tab.key, { state: "ended", error })}
-              onSize={(cols, rows) => update(tab.key, { cols, rows })}
+              updatePane={(id, patch) => updatePane(tab.key, id, patch)}
+              focusPane={(id) => focusPane(tab.key, id)}
+              closePane={(id) => closePane(tab.key, id)}
+              resize={(id, ratio) =>
+                updateTab(tab.key, (old) => ({
+                  ...old,
+                  layout: resizeSplit(old.layout, id, ratio),
+                }))
+              }
             />
           ))}
           {!tabs.length && (
@@ -347,29 +511,43 @@ function App() {
             </div>
           )}
         </div>
-        {current?.error && (
-          <div className="error" role="alert">
-            {current.error}
-          </div>
-        )}
         <footer>
           <span>
-            <i className={`state-dot ${current?.state ?? ""}`} />
-            {current?.state === "live"
+            <i className={`state-dot ${pane?.state ?? ""}`} />
+            {pane?.state === "live"
               ? "Connected to local shell"
-              : current?.state === "ended"
+              : pane?.state === "ended"
                 ? "Session ended · Open a new terminal to continue"
                 : tabs.length
                   ? "Starting…"
                   : "No open terminals"}
           </span>
           <div>
-            <span>{current ? `${current.cols} × ${current.rows}` : ""}</span>
+            {current && current.panes.length > 1 && (
+              <span>{current.panes.length} PANES</span>
+            )}
+            <span>{pane ? `${pane.cols} × ${pane.rows}` : ""}</span>
             <span>UTF-8</span>
             <span>LOCAL</span>
           </div>
         </footer>
       </section>
+      {appearanceTab && (
+        <TabAppearance
+          key={appearanceTab.key}
+          name={appearanceTab.customName ?? ""}
+          color={appearanceTab.color}
+          onClose={closeAppearance}
+          onSave={(customName, color) => {
+            updateTab(appearanceTab.key, (tab) => ({
+              ...tab,
+              customName: customName || undefined,
+              color,
+            }));
+            closeAppearance();
+          }}
+        />
+      )}
       {help && (
         <dialog
           ref={helpDialog}
@@ -394,11 +572,15 @@ function App() {
             </button>
           </header>
           {[
-            ["New terminal", "⌘ T"],
-            ["Close terminal", "⌘ W"],
-            ["Find output", "⌘ F"],
+            ["New tab", "⌘ T"],
+            ["Split left / right", "⌘ D"],
+            ["Split top / bottom", "⌘ ⇧ D"],
+            ["Next pane", "⌘ J"],
+            ["Close active pane", "⌘ W"],
+            ["Close whole tab", "⌘ ⇧ W"],
+            ["Find in active pane", "⌘ F"],
             ["Clear scrollback", "⌘ K"],
-            ["Switch terminal", "⌘ 1–9"],
+            ["Switch tab", "⌘ 1–9"],
             ["Font size", "⌘ + / −"],
             ["Interrupt command", "Ctrl C"],
           ].map(([label, shortcut]) => (
@@ -408,8 +590,8 @@ function App() {
             </div>
           ))}
           <p>
-            Each terminal runs your login shell. Closing a terminal ends its
-            session.
+            Double-click a tab to rename it or choose a color. Drag dividers to
+            resize; double-click to reset. Closing a pane ends only its shell.
           </p>
         </dialog>
       )}

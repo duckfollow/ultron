@@ -11,7 +11,8 @@
     "build": "tauri build && node scripts/verify-macos-bundle.mjs",
     "tauri": "tauri",
     "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
-    "format": "prettier --write src scripts *.json *.ts *.html && cargo fmt --manifest-path src-tauri/Cargo.toml"
+    "format": "prettier --write src scripts *.json *.ts *.html && cargo fmt --manifest-path src-tauri/Cargo.toml",
+    "test": "node --experimental-strip-types --test src/workspace-model.test.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

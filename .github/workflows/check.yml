@@ -18,6 +18,7 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
+      - run: npm test
       - run: npm run build:web
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
       - run: npm run test:native

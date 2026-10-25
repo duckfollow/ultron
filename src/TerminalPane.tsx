@@ -21,14 +21,18 @@ type Output =
   | { type: "exit"; code: number | null }
   | { type: "error"; message: string };
 export function TerminalPane({
-  active,
+  visible,
+  focused,
+  onFocus,
   register,
   onReady,
   onTitle,
   onExit,
   onSize,
 }: {
-  active: boolean;
+  visible: boolean;
+  focused: boolean;
+  onFocus: () => void;
   register: (handle: TerminalHandle | null) => void;
   onReady: (info: SessionInfo) => void;
   onTitle: (title: string) => void;
@@ -37,8 +41,8 @@ export function TerminalPane({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const runtime = useRef<{ term: Terminal; fit: FitAddon } | null>(null);
-  const isActive = useRef(active);
-  isActive.current = active;
+  const isActive = useRef(focused);
+  isActive.current = focused;
   const callbacks = useRef({ register, onReady, onTitle, onExit, onSize });
   callbacks.current = { register, onReady, onTitle, onExit, onSize };
   useEffect(() => {
@@ -205,17 +209,19 @@ export function TerminalPane({
     };
   }, []);
   useEffect(() => {
-    if (!active) return;
+    if (!visible) return;
     const frame = requestAnimationFrame(() => {
       runtime.current?.fit.fit();
-      runtime.current?.term.focus();
+      if (focused) runtime.current?.term.focus();
     });
     return () => cancelAnimationFrame(frame);
-  }, [active]);
+  }, [visible, focused]);
   return (
     <div
       ref={host}
-      className={`terminal-host ${active ? "active" : ""}`}
+      className={`terminal-host ${visible ? "active" : ""}`}
+      onPointerDown={onFocus}
+      onFocusCapture={onFocus}
       aria-label="Terminal session"
     />
   );
