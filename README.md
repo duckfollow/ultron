@@ -65,7 +65,7 @@ Find, clear scrollback and font controls affect the focused pane. Names, colors 
 
 Use **Connections → +** to save a server. **Save** works offline; **Save & connect** opens a new tab. Click a connection to open another SSH session, or use **…** to connect in a split pane, edit, or delete its saved profile. Deleting a profile leaves existing sessions running.
 
-Profiles are stored atomically at `~/Library/Application Support/com.duckfollow.ultron/ssh-profiles.json` with owner-only file permissions. The app saves connection metadata and the identity-file path; it never copies private keys or stores passwords/passphrases. **Authentication** is saved per profile:
+Profiles are stored atomically at `~/Library/Application Support/com.duckfollow.ultron/ssh-profiles.json` with owner-only file permissions. The app saves connection metadata and the identity-file path; it never copies private keys or stores passwords in the profile file. **Authentication** is saved per profile:
 
 - **Auto** tries keys / ssh-agent first, then password or keyboard-interactive authentication. An optional key path chooses a specific identity.
 - **Password** skips public keys and asks in the terminal. The server must allow password or keyboard-interactive sign-in; this setting cannot enable it on the server. A previously selected key is ignored in this mode.
@@ -77,4 +77,8 @@ Authentication and new host-key verification happen in the terminal. OpenSSH che
 
 `npm run test:ssh` creates temporary test keys and a loopback-only SSH fixture, verifies interactive key, password, keyboard-interactive, and Auto fallback sessions, checks that passwords are not echoed, and confirms that key-only mode does not fall back and mismatched host keys are rejected. It uses isolated known_hosts files and never reads saved connections or modifies the user's SSH configuration. UI testing uses a separate preview identifier.
 
-SCP/SFTP file-transfer controls and password storage in Keychain are not part of this first SSH milestone. Sessions remain transient; saved SSH profiles survive app restarts.
+**Remember password** is optional and off by default. Saved login passwords live in macOS Keychain, with no paid service or subscription. Use **Forget password** to remove one. Changing the server, port, or username requires a new password. Rejected saved passwords are removed before asking again. OTP / 2FA codes and key passphrases are always entered manually and never stored. Automatic filling only applies to OpenSSH’s exact login-password prompt; generic keyboard-interactive prompts remain manual. macOS may request Keychain access permission.
+
+`npm run test:keychain` additionally checks saved-password sign-in, rejected-password retry, and manual OTP with disposable credentials in the local macOS Keychain.
+
+SCP/SFTP file-transfer controls are not part of this milestone. Sessions remain transient; saved SSH profiles survive app restarts.

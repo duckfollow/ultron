@@ -91,20 +91,10 @@ aside {
   justify-content: center;
   gap: 5px;
   width: 39px;
-  height: 43px;
+  height: 39px;
   border: 1px solid #75434b;
   background: linear-gradient(145deg, #47282e, #241c22);
-  border-radius: 11px 11px 15px 15px;
-  clip-path: polygon(
-    14% 0,
-    86% 0,
-    100% 22%,
-    90% 79%,
-    65% 100%,
-    35% 100%,
-    10% 79%,
-    0 22%
-  );
+  border-radius: 11px;
   flex-shrink: 0;
 }
 .ultron-mark i {
@@ -480,7 +470,8 @@ footer > div {
 }
 .empty .ultron-mark {
   width: 60px;
-  height: 68px;
+  height: 60px;
+  border-radius: 17px;
   margin-bottom: 28px;
 }
 .empty small {
@@ -1033,7 +1024,8 @@ aside nav {
 }
 .sidebar.collapsed .ultron-mark {
   width: 32px;
-  height: 36px;
+  height: 32px;
+  border-radius: 9px;
   gap: 4px;
 }
 .sidebar.collapsed .ultron-mark i {
