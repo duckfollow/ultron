@@ -86,26 +86,11 @@ aside {
   margin-top: 6px;
 }
 .ultron-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+  display: block;
   width: 39px;
   height: 39px;
-  border: 1px solid #75434b;
-  background: linear-gradient(145deg, #47282e, #241c22);
-  border-radius: 11px;
+  object-fit: contain;
   flex-shrink: 0;
-}
-.ultron-mark i {
-  width: 10px;
-  height: 4px;
-  background: #ff7c82;
-  box-shadow: 0 0 10px #ff485380;
-  transform: rotate(18deg);
-}
-.ultron-mark i + i {
-  transform: rotate(-18deg);
 }
 .new-session {
   width: 100%;
@@ -471,7 +456,6 @@ footer > div {
 .empty .ultron-mark {
   width: 60px;
   height: 60px;
-  border-radius: 17px;
   margin-bottom: 28px;
 }
 .empty small {
@@ -1025,13 +1009,8 @@ aside nav {
 .sidebar.collapsed .ultron-mark {
   width: 32px;
   height: 32px;
-  border-radius: 9px;
-  gap: 4px;
 }
-.sidebar.collapsed .ultron-mark i {
-  width: 8px;
-  height: 3px;
-}
+
 .sidebar.collapsed .new-session {
   justify-content: center;
   padding: 11px 0;

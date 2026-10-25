@@ -1,3 +1,4 @@
+const ultronLogo = new URL("../src-tauri/icon.svg", import.meta.url).href;
 import { useState, useRef, useEffect, type CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { SshConnections } from "./SshConnections";
@@ -311,10 +312,12 @@ function App() {
       >
         <div className="sidebar-top">
           <div className="brand">
-            <div className="ultron-mark" aria-hidden="true">
-              <i />
-              <i />
-            </div>
+            <img
+              className="ultron-mark"
+              src={ultronLogo}
+              alt=""
+              aria-hidden="true"
+            />
             <div className="brand-copy">
               <strong>
                 ULTRON<span>•</span>
@@ -633,10 +636,7 @@ function App() {
           ))}
           {!tabs.length && (
             <div className="empty">
-              <div className="ultron-mark">
-                <i />
-                <i />
-              </div>
+              <img className="ultron-mark" src={ultronLogo} alt="Ultron" />
               <small>READY WHEN YOU ARE</small>
               <h1>Make your next move.</h1>
               <p>A focused space for your commands.</p>
