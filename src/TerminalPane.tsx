@@ -1,4 +1,6 @@
-import { useEffect, useRef } from "react";
+import { Monitor, Server, RotateCw, Pencil, AlertCircle } from "lucide-react";
+import { sshFailure } from "./ssh-status";
+import { useEffect, useRef, useState } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
@@ -32,7 +34,11 @@ export function TerminalPane({
   onTitle,
   onExit,
   onSize,
+  onRestart,
+  onEdit,
 }: {
+  onRestart: () => void;
+  onEdit?: () => void;
   visible: boolean;
   profileId?: string;
   focused: boolean;
@@ -43,6 +49,12 @@ export function TerminalPane({
   onExit: (error?: string) => void;
   onSize: (cols: number, rows: number) => void;
 }) {
+  const [attempt, setAttempt] = useState(0);
+  const [connecting, setConnecting] = useState(Boolean(profileId));
+  const [failure, setFailure] = useState<{
+    title: string;
+    details: string;
+  } | null>(null);
   const host = useRef<HTMLDivElement>(null);
   const runtime = useRef<{ term: Terminal; fit: FitAddon } | null>(null);
   const isActive = useRef(focused);
@@ -50,6 +62,16 @@ export function TerminalPane({
   const callbacks = useRef({ register, onReady, onTitle, onExit, onSize });
   callbacks.current = { register, onReady, onTitle, onExit, onSize };
   useEffect(() => {
+    setConnecting(Boolean(profileId));
+    setFailure(null);
+    let diagnosticTail = "";
+    const decoder = new TextDecoder();
+    const fail = (message: string) => {
+      setConnecting(false);
+      if (profileId)
+        setFailure({ title: "Unable to start SSH", details: message });
+      callbacks.current.onExit(profileId ? undefined : message);
+    };
     const term = new Terminal({
       cursorBlink: true,
       cursorStyle: "bar",
@@ -116,6 +138,7 @@ export function TerminalPane({
     });
     const data = term.onData((value) => {
       if (!id || ended || disposed) return;
+      setConnecting(false);
       // Serialize input so a paste and the following Enter cannot arrive out of order.
       for (let offset = 0; offset < value.length;) {
         let end = Math.min(offset + 8192, value.length);
@@ -129,7 +152,7 @@ export function TerminalPane({
               await invoke("write_terminal", { id, data: chunk });
           })
           .catch((error) => {
-            if (!disposed && !ended) callbacks.current.onExit(String(error));
+            if (!disposed && !ended) fail(String(error));
           });
       }
     });
@@ -140,19 +163,29 @@ export function TerminalPane({
     output.onmessage = (event) => {
       if (disposed) return;
       if (event.type === "data") {
+        if (profileId) {
+          diagnosticTail = (
+            diagnosticTail +
+            decoder.decode(new Uint8Array(event.bytes), { stream: true })
+          ).slice(-16384);
+          // Any SSH output may be a password, OTP, or host-key question. Never cover it.
+          if (event.bytes.length) setConnecting(false);
+        }
         term.write(new Uint8Array(event.bytes), () => {
           pendingAck += event.bytes.length;
           acknowledge();
         });
       } else if (event.type === "exit") {
         ended = true;
+        setConnecting(false);
+        if (profileId) setFailure(sshFailure(diagnosticTail, event.code));
         term.write(
           `\r\n\x1b[90m[Session ended${event.code === null ? "" : ` · exit ${event.code}`} ]\x1b[0m\r\n`,
         );
         callbacks.current.onExit();
         // Remove the native session after its final output; scrollback remains visible.
         if (id) void invoke("close_terminal", { id }).catch(() => {});
-      } else callbacks.current.onExit(event.message);
+      } else fail(event.message);
     };
     callbacks.current.register({
       focus: () => term.focus(),
@@ -199,7 +232,7 @@ export function TerminalPane({
         if (disposed) return;
         ended = true;
         term.writeln(`\x1b[31mUnable to start shell: ${String(error)}\x1b[0m`);
-        callbacks.current.onExit(String(error));
+        fail(String(error));
       });
     return () => {
       disposed = true;
@@ -212,7 +245,7 @@ export function TerminalPane({
       term.dispose();
       if (id) void invoke("close_terminal", { id }).catch(() => {});
     };
-  }, []);
+  }, [attempt]);
   useEffect(() => {
     if (!visible) return;
     const frame = requestAnimationFrame(() => {
@@ -222,12 +255,55 @@ export function TerminalPane({
     return () => cancelAnimationFrame(frame);
   }, [visible, focused]);
   return (
-    <div
-      ref={host}
-      className={`terminal-host ${visible ? "active" : ""}`}
-      onPointerDown={onFocus}
-      onFocusCapture={onFocus}
-      aria-label="Terminal session"
-    />
+    <>
+      <div
+        ref={host}
+        className={`terminal-host ${visible ? "active" : ""}`}
+        onPointerDown={onFocus}
+        onFocusCapture={onFocus}
+        aria-label="Terminal session"
+      />
+      {visible && connecting && (
+        <div className="ssh-connecting" role="status" aria-live="polite">
+          <div className="ssh-route" aria-hidden="true">
+            <Monitor size={25} />
+            <span className="ssh-dots">
+              {[0, 1, 2, 3, 4].map((dot) => (
+                <i key={dot} style={{ animationDelay: `${dot * 140}ms` }} />
+              ))}
+            </span>
+            <Server size={25} />
+          </div>
+          <span>Connecting…</span>
+        </div>
+      )}
+      {visible && failure && (
+        <div className="ssh-failure" role="alert">
+          <div className="ssh-failure-title">
+            <AlertCircle size={16} />
+            <strong>{failure.title}</strong>
+          </div>
+          <div className="ssh-failure-actions">
+            <button
+              onClick={() => {
+                onRestart();
+                setAttempt((value) => value + 1);
+              }}
+            >
+              <RotateCw size={13} /> Retry
+            </button>
+            {onEdit && (
+              <button onClick={onEdit}>
+                <Pencil size={13} /> Edit connection
+              </button>
+            )}
+          </div>
+          <details>
+            <summary>Show details</summary>
+            <pre>{failure.details}</pre>
+          </details>
+        </div>
+      )}
+    </>
   );
 }

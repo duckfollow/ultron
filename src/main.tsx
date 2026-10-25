@@ -617,6 +617,14 @@ function App() {
           {tabs.map((tab) => (
             <SplitWorkspace
               key={tab.key}
+              getConnection={(id) =>
+                profiles.find((profile) => profile.id === id)
+              }
+              editConnection={(profile) =>
+                setProfileDialog(
+                  profiles.find((saved) => saved.id === profile.id) ?? profile,
+                )
+              }
               tab={tab}
               visible={active === tab.key}
               register={(id, terminal) => {
@@ -654,7 +662,7 @@ function App() {
                 ? `SSH session · ${profileAddress(pane.sshProfile)}`
                 : "Connected to local shell"
               : pane?.state === "ended"
-                ? "Session ended · Open a new terminal to continue"
+                ? "Session ended"
                 : tabs.length
                   ? "Starting…"
                   : "No open terminals"}

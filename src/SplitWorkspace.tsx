@@ -19,7 +19,11 @@ export function SplitWorkspace({
   focusPane,
   closePane,
   resize,
+  editConnection,
+  getConnection,
 }: {
+  getConnection: (id: string) => Pane["sshProfile"];
+  editConnection: (profile: NonNullable<Pane["sshProfile"]>) => void;
   tab: Tab;
   visible: boolean;
   register: (id: string, handle: TerminalHandle | null) => void;
@@ -87,6 +91,21 @@ export function SplitWorkspace({
           )}
           <div className="pane-content">
             <TerminalPane
+              onRestart={() =>
+                updatePane(pane.id, {
+                  state: "starting",
+                  info: undefined,
+                  error: undefined,
+                  sshProfile: pane.sshProfile
+                    ? (getConnection(pane.sshProfile.id) ?? pane.sshProfile)
+                    : undefined,
+                })
+              }
+              onEdit={
+                pane.sshProfile
+                  ? () => editConnection(pane.sshProfile!)
+                  : undefined
+              }
               visible={visible}
               profileId={pane.sshProfile?.id}
               focused={visible && tab.activePane === pane.id}
