@@ -1154,3 +1154,20 @@ aside nav {
 .sidebar.collapsed nav::-webkit-scrollbar {
   display: none;
 }
+.ssh-fields select {
+  display: block;
+  height: 36px;
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid #393f4b;
+  border-radius: 5px;
+  padding: 9px 10px;
+  color: #dfe4ed;
+  background: #111217;
+  font: inherit;
+  font-size: 12px;
+}
+.ssh-fields select:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: -2px;
+}

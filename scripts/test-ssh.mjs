@@ -27,20 +27,47 @@ try {
       connections.add(client);
       client.on("close", () => connections.delete(client));
       client.on("error", () => {});
+      let authenticatedWith = "";
       client.on("authentication", (context) => {
+        const methods =
+          context.username === "ultron-interactive"
+            ? ["keyboard-interactive"]
+            : context.username === "ultron-password"
+              ? ["password"]
+              : ["publickey", "password"];
         if (
-          context.username !== "ultron-test" ||
-          context.method !== "publickey" ||
-          !context.key.data.equals(publicKey.getPublicSSH()) ||
-          (context.signature &&
+          !["ultron-test", "ultron-password", "ultron-interactive"].includes(
+            context.username,
+          ) ||
+          !methods.includes(context.method)
+        ) {
+          context.reject(methods);
+          return;
+        }
+        if (context.method === "password") {
+          if (context.password === "ultron-fixture-password") {
+            authenticatedWith = "password";
+            context.accept();
+          } else context.reject(methods);
+        } else if (context.method === "keyboard-interactive") {
+          context.prompt([{ prompt: "Password: ", echo: false }], (answers) => {
+            if (answers[0] === "ultron-fixture-password") {
+              authenticatedWith = "keyboard-interactive";
+              context.accept();
+            } else context.reject(methods);
+          });
+        } else if (
+          context.key.data.equals(publicKey.getPublicSSH()) &&
+          (!context.signature ||
             publicKey.verify(
               context.blob,
               context.signature,
               context.hashAlgo,
-            ) !== true)
-        )
-          context.reject(["publickey"]);
-        else context.accept();
+            ) === true)
+        ) {
+          authenticatedWith = "publickey";
+          context.accept();
+        } else context.reject(methods);
       });
       client.on("ready", () =>
         client.on("session", (accept) => {
@@ -50,7 +77,7 @@ try {
           session.on("window-change", (accept) => accept?.());
           session.on("shell", (accept) => {
             const stream = accept();
-            stream.write("ULTRON_SSH_READY\r\n");
+            stream.write(`ULTRON_SSH_READY\r\nAUTH=${authenticatedWith}\r\n`);
             let input = "";
             stream.on("data", (data) => {
               input += data.toString();

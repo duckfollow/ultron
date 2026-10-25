@@ -9,6 +9,14 @@ use tauri::{AppHandle, Manager, State};
 
 #[derive(Default)]
 pub struct ProfileStore(pub Mutex<()>);
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum AuthMethod {
+    #[default]
+    Auto,
+    Password,
+    Key,
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Profile {
@@ -19,6 +27,8 @@ pub struct Profile {
     pub username: String,
     #[serde(default)]
     pub identity_file: String,
+    #[serde(default)]
+    pub auth_method: AuthMethod,
 }
 impl Profile {
     pub fn validate(&self) -> Result<(), String> {
@@ -61,7 +71,11 @@ impl Profile {
         if self.identity_file.len() > 4096 || self.identity_file.chars().any(char::is_control) {
             return Err("Invalid SSH key path".into());
         }
-        if !self.identity_file.is_empty()
+        if self.auth_method == AuthMethod::Key && self.identity_file.is_empty() {
+            return Err("Choose an SSH private key for key authentication".into());
+        }
+        if self.auth_method != AuthMethod::Password
+            && !self.identity_file.is_empty()
             && !self.identity_file.starts_with('/')
             && !self.identity_file.starts_with("~/")
         {
@@ -89,7 +103,35 @@ pub fn arguments(profile: &Profile, home: &Path) -> Result<Vec<String>, String> 
         "-o".into(),
         "ConnectionAttempts=1".into(),
     ];
-    if !profile.identity_file.is_empty() {
+    let settings: &[&str] = match profile.auth_method {
+        AuthMethod::Auto => &[
+            "PreferredAuthentications=publickey,keyboard-interactive,password",
+            "PubkeyAuthentication=yes",
+            "PasswordAuthentication=yes",
+            "KbdInteractiveAuthentication=yes",
+        ],
+        AuthMethod::Password => &[
+            "PreferredAuthentications=keyboard-interactive,password",
+            "PubkeyAuthentication=no",
+            "PasswordAuthentication=yes",
+            "KbdInteractiveAuthentication=yes",
+        ],
+        AuthMethod::Key => &[
+            "PreferredAuthentications=publickey",
+            "PubkeyAuthentication=yes",
+            "PasswordAuthentication=no",
+            "KbdInteractiveAuthentication=no",
+        ],
+    };
+    for setting in
+        settings
+            .iter()
+            .copied()
+            .chain(["BatchMode=no", "ControlMaster=no", "ControlPath=none"])
+    {
+        args.extend(["-o".into(), setting.into()]);
+    }
+    if profile.auth_method != AuthMethod::Password && !profile.identity_file.is_empty() {
         let path = profile
             .identity_file
             .strip_prefix("~/")
@@ -231,6 +273,7 @@ mod tests {
             port: 2222,
             username: "tester".into(),
             identity_file: String::new(),
+            auth_method: AuthMethod::Auto,
         }
     }
     #[test]
@@ -242,8 +285,10 @@ mod tests {
         assert_eq!(saved.len(), 1);
         let mut edited = saved[0].clone();
         edited.name = "Renamed".into();
+        edited.auth_method = AuthMethod::Password;
         let updated = save(&path, edited).unwrap();
         assert_eq!(updated[0].name, "Renamed");
+        assert_eq!(read(&path).unwrap()[0].auth_method, AuthMethod::Password);
         assert_eq!(updated[0].id, saved[0].id);
         #[cfg(unix)]
         {
@@ -254,11 +299,34 @@ mod tests {
             );
         }
         let bytes = fs::read_to_string(&path).unwrap();
-        assert!(!bytes.contains("password"));
+        let stored: serde_json::Value = serde_json::from_str(&bytes).unwrap();
+        assert!(stored[0].get("password").is_none());
+        assert!(stored[0].get("passphrase").is_none());
         fs::write(&path, "invalid").unwrap();
         assert!(save(&path, profile()).is_err());
         assert_eq!(fs::read_to_string(&path).unwrap(), "invalid");
         fs::remove_dir_all(dir).unwrap();
+    }
+    #[test]
+    fn authentication_modes_are_saved_and_legacy_profiles_default_to_auto() {
+        let mut legacy = serde_json::to_value(profile()).unwrap();
+        legacy.as_object_mut().unwrap().remove("authMethod");
+        let parsed: Profile = serde_json::from_value(legacy).unwrap();
+        assert_eq!(parsed.auth_method, AuthMethod::Auto);
+        let mut password = profile();
+        password.auth_method = AuthMethod::Password;
+        password.identity_file = "/missing/ignored-key".into();
+        let args = arguments(&password, Path::new("/")).unwrap();
+        assert!(args.contains(&"PubkeyAuthentication=no".into()));
+        assert!(!args.contains(&"-i".into()));
+        let saved = serde_json::to_value(&password).unwrap();
+        assert_eq!(saved["authMethod"], "password");
+        assert!(saved.get("password").is_none());
+        let mut key = profile();
+        key.auth_method = AuthMethod::Key;
+        assert!(arguments(&key, Path::new("/")).is_err());
+        key.identity_file = "/missing/key".into();
+        assert!(arguments(&key, Path::new("/")).is_err());
     }
     #[test]
     fn ssh_uses_separate_arguments_and_keeps_host_verification() {
@@ -305,14 +373,14 @@ mod tests {
         use std::io::Read;
         use std::time::Duration;
         let dir = PathBuf::from(std::env::var("ULTRON_TEST_SSH_DIR").unwrap());
-        let mut profile = profile();
-        profile.username = "ultron-test".into();
-        profile.port = std::env::var("ULTRON_TEST_SSH_PORT")
+        let mut base = profile();
+        base.username = "ultron-test".into();
+        base.port = std::env::var("ULTRON_TEST_SSH_PORT")
             .unwrap()
             .parse()
             .unwrap();
-        profile.identity_file = dir.join("client").to_string_lossy().into();
-        let fixture_args = |hosts: &str| {
+        base.identity_file = dir.join("client").to_string_lossy().into();
+        let fixture_args = |profile: &Profile, hosts: &str| {
             let mut args = vec![
                 "-F".into(),
                 "/dev/null".into(),
@@ -320,52 +388,100 @@ mod tests {
                 format!("UserKnownHostsFile={}", dir.join(hosts).display()),
                 "-o".into(),
                 "GlobalKnownHostsFile=/dev/null".into(),
-                "-o".into(),
-                "BatchMode=yes".into(),
             ];
-            args.extend(arguments(&profile, &dir).unwrap());
+            args.extend(arguments(profile, &dir).unwrap());
             args
         };
-        let pair = portable_pty::native_pty_system()
-            .openpty(portable_pty::PtySize {
-                rows: 24,
-                cols: 80,
-                pixel_width: 0,
-                pixel_height: 0,
-            })
-            .unwrap();
-        let mut command = portable_pty::CommandBuilder::new("/usr/bin/ssh");
-        command.args(fixture_args("known_hosts"));
-        command.env("TERM", "xterm-256color");
-        let mut child = pair.slave.spawn_command(command).unwrap();
-        drop(pair.slave);
-        let mut reader = pair.master.try_clone_reader().unwrap();
-        let mut writer = pair.master.take_writer().unwrap();
-        writer.write_all(b"ultron-ping\nexit\n").unwrap();
-        writer.flush().unwrap();
-        let mut killer = child.clone_killer();
-        let (tx, rx) = std::sync::mpsc::channel();
-        std::thread::spawn(move || {
-            if rx.recv_timeout(Duration::from_secs(15)).is_err() {
-                let _ = killer.kill();
+        let connect = |profile: &Profile| {
+            let pair = portable_pty::native_pty_system()
+                .openpty(portable_pty::PtySize {
+                    rows: 24,
+                    cols: 80,
+                    pixel_width: 0,
+                    pixel_height: 0,
+                })
+                .unwrap();
+            let mut command = portable_pty::CommandBuilder::new("/usr/bin/ssh");
+            command.args(fixture_args(profile, "known_hosts"));
+            command.env("TERM", "xterm-256color");
+            let mut child = pair.slave.spawn_command(command).unwrap();
+            drop(pair.slave);
+            let mut reader = pair.master.try_clone_reader().unwrap();
+            let mut writer = pair.master.take_writer().unwrap();
+            let mut killer = child.clone_killer();
+            let (tx, rx) = std::sync::mpsc::channel();
+            std::thread::spawn(move || {
+                if rx.recv_timeout(Duration::from_secs(15)).is_err() {
+                    let _ = killer.kill();
+                }
+            });
+            let mut output = Vec::new();
+            let mut bytes = [0; 4096];
+            let mut sent_password = false;
+            let mut sent_command = false;
+            loop {
+                match reader.read(&mut bytes) {
+                    Ok(0) | Err(_) => break,
+                    Ok(n) => {
+                        output.extend_from_slice(&bytes[..n]);
+                        let text = String::from_utf8_lossy(&output);
+                        if !sent_password && text.to_ascii_lowercase().contains("password:") {
+                            assert_ne!(
+                                profile.auth_method,
+                                AuthMethod::Key,
+                                "Key mode must not ask for a login password"
+                            );
+                            writer.write_all(b"ultron-fixture-password\n").unwrap();
+                            writer.flush().unwrap();
+                            sent_password = true;
+                        }
+                        if !sent_command && text.contains("ULTRON_SSH_READY") {
+                            writer.write_all(b"ultron-ping\nexit\n").unwrap();
+                            writer.flush().unwrap();
+                            sent_command = true;
+                        }
+                    }
+                }
             }
-        });
-        let mut output = Vec::new();
-        let mut bytes = [0; 4096];
-        loop {
-            match reader.read(&mut bytes) {
-                Ok(0) | Err(_) => break,
-                Ok(n) => output.extend_from_slice(&bytes[..n]),
+            let status = child.wait().unwrap();
+            let _ = tx.send(());
+            let text = String::from_utf8_lossy(&output).into_owned();
+            assert!(
+                !text.contains("ultron-fixture-password"),
+                "Passwords must not echo into scrollback"
+            );
+            (status.success(), text)
+        };
+        for (mode, user, expected) in [
+            (AuthMethod::Auto, "ultron-test", "publickey"),
+            (AuthMethod::Key, "ultron-test", "publickey"),
+            (AuthMethod::Password, "ultron-test", "password"),
+            (AuthMethod::Auto, "ultron-password", "password"),
+            (
+                AuthMethod::Password,
+                "ultron-interactive",
+                "keyboard-interactive",
+            ),
+        ] {
+            let mut profile = base.clone();
+            profile.auth_method = mode.clone();
+            profile.username = user.into();
+            if mode == AuthMethod::Password {
+                profile.identity_file = "/missing/ignored-key".into();
             }
+            let (success, text) = connect(&profile);
+            assert!(success, "{mode:?}: {text}");
+            assert!(text.contains("ULTRON_SSH_PONG"), "{text}");
+            assert!(text.contains(&format!("AUTH={expected}")), "{text}");
         }
-        let status = child.wait().unwrap();
-        let _ = tx.send(());
-        let text = String::from_utf8_lossy(&output);
-        assert!(status.success(), "{text}");
-        assert!(text.contains("ULTRON_SSH_READY"), "{text}");
-        assert!(text.contains("ULTRON_SSH_PONG"), "{text}");
+        let mut key_only = base.clone();
+        key_only.auth_method = AuthMethod::Key;
+        key_only.username = "ultron-password".into();
+        let (success, text) = connect(&key_only);
+        assert!(!success);
+        assert!(!text.to_ascii_lowercase().contains("password:"));
         let rejected = std::process::Command::new("/usr/bin/ssh")
-            .args(fixture_args("wrong_hosts"))
+            .args(fixture_args(&base, "wrong_hosts"))
             .output()
             .unwrap();
         assert!(!rejected.status.success());

@@ -1,4 +1,6 @@
+export type SshAuthMethod = "auto" | "password" | "key";
 export type SshProfile = {
+  authMethod: SshAuthMethod;
   id: string;
   name: string;
   host: string;
@@ -14,6 +16,7 @@ export const newSshProfile = (): SshProfile => ({
   port: 22,
   username: "",
   identityFile: "",
+  authMethod: "auto",
 });
 export function profileAddress(profile: SshProfile) {
   return `${profile.username}@${profile.host.includes(":") ? `[${profile.host}]` : profile.host}:${profile.port}`;

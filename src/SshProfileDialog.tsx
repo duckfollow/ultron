@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { FolderOpen, Server, X } from "lucide-react";
-import type { SshProfile } from "./ssh-model";
+import type { SshProfile, SshAuthMethod } from "./ssh-model";
 export function SshProfileDialog({
   initial,
   onClose,
@@ -20,7 +20,10 @@ export function SshProfileDialog({
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     nameInput = useRef<HTMLInputElement>(null);
-  const [draft, setDraft] = useState(initial),
+  const [draft, setDraft] = useState({
+      ...initial,
+      authMethod: initial.authMethod ?? "auto",
+    }),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -141,44 +144,71 @@ export function SshProfileDialog({
             />
           </label>
           <label>
-            SSH key <span className="optional">Optional</span>
-            <div className="ssh-key-field">
-              <input
-                value={draft.identityFile}
-                placeholder="Use ssh-agent / default keys"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                onChange={(event) =>
-                  patch({ identityFile: event.target.value })
-                }
-              />
-              <button
-                type="button"
-                className="icon-button"
-                aria-label="Choose SSH key file"
-                title="Choose SSH key file"
-                onClick={() => {
-                  void open({
-                    title: "Choose SSH identity file",
-                    multiple: false,
-                    directory: false,
-                  })
-                    .then((path) => {
-                      if (typeof path === "string")
-                        patch({ identityFile: path });
-                    })
-                    .catch((error) => setError(String(error)));
-                }}
-              >
-                <FolderOpen size={16} />
-              </button>
-            </div>
+            Authentication
+            <select
+              value={draft.authMethod}
+              onChange={(event) =>
+                patch({ authMethod: event.target.value as SshAuthMethod })
+              }
+            >
+              <option value="auto">Auto</option>
+              <option value="password">Password</option>
+              <option value="key">SSH key</option>
+            </select>
           </label>
+          {draft.authMethod !== "password" && (
+            <label>
+              SSH key{" "}
+              {draft.authMethod === "auto" && (
+                <span className="optional">Optional</span>
+              )}
+              <div className="ssh-key-field">
+                <input
+                  value={draft.identityFile}
+                  required={draft.authMethod === "key"}
+                  placeholder={
+                    draft.authMethod === "key"
+                      ? "~/.ssh/id_ed25519"
+                      : "Use ssh-agent / default keys"
+                  }
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  onChange={(event) =>
+                    patch({ identityFile: event.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label="Choose SSH key file"
+                  title="Choose SSH key file"
+                  onClick={() => {
+                    void open({
+                      title: "Choose SSH identity file",
+                      multiple: false,
+                      directory: false,
+                    })
+                      .then((path) => {
+                        if (typeof path === "string")
+                          patch({ identityFile: path });
+                      })
+                      .catch((error) => setError(String(error)));
+                  }}
+                >
+                  <FolderOpen size={16} />
+                </button>
+              </div>
+            </label>
+          )}
         </fieldset>
         <p className="ssh-hint">
-          Passwords, key passphrases, and new host verification appear in the
-          terminal. Only the key path is saved.
+          {draft.authMethod === "password"
+            ? "Your password is requested in the terminal. The server must allow password sign-in. Passwords are not saved."
+            : draft.authMethod === "key"
+              ? "Choose a private key. Its passphrase, if needed, is requested in the terminal and is not saved."
+              : "Tries SSH keys first, then asks for a password if the server allows it. Passwords are not saved."}{" "}
+          New host verification appears in the terminal.
         </p>
         {error && (
           <p className="form-error" role="alert">
