@@ -1,0 +1,19 @@
+[package]
+name = "ultron"
+version = "0.1.0-alpha.1"
+edition = "2021"
+description = "A focused local terminal for macOS"
+[lib]
+name = "ultron_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+[[bin]]
+name = "Ultron"
+path = "src/main.rs"
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+[dependencies]
+tauri = { version = "2", features = [] }
+portable-pty = "0.9"
+serde = { version = "1", features = ["derive"] }
+uuid = { version = "1", features = ["v4"] }
+libc = "0.2"

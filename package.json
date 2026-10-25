@@ -1,0 +1,35 @@
+{
+  "name": "ultron",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:web": "vite --host 127.0.0.1",
+    "check": "tsc --noEmit",
+    "build:web": "tsc --noEmit && vite build",
+    "build": "tauri build && node scripts/verify-macos-bundle.mjs",
+    "tauri": "tauri",
+    "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
+    "format": "prettier --write src scripts *.json *.ts *.html && cargo fmt --manifest-path src-tauri/Cargo.toml"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-search": "^0.15.0",
+    "@xterm/xterm": "^5.5.0",
+    "lucide-react": "^1",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "vite": "^6"
+  }
+}
