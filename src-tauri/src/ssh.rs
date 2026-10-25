@@ -3,12 +3,12 @@ use std::{
     fs::{self, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 use tauri::{AppHandle, Manager, State};
 
 #[derive(Default)]
-pub struct ProfileStore(pub Mutex<()>);
+pub struct ProfileStore(pub Arc<Mutex<()>>);
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum AuthMethod {
@@ -29,6 +29,8 @@ pub struct Profile {
     pub identity_file: String,
     #[serde(default)]
     pub auth_method: AuthMethod,
+    #[serde(default)]
+    pub remember_password: bool,
 }
 impl Profile {
     pub fn validate(&self) -> Result<(), String> {
@@ -205,6 +207,7 @@ fn write(path: &Path, profiles: &[Profile]) -> Result<(), String> {
     }
     result
 }
+#[cfg(test)]
 fn save(path: &Path, mut profile: Profile) -> Result<Vec<Profile>, String> {
     profile.name = profile.name.trim().into();
     profile.validate()?;
@@ -234,26 +237,106 @@ pub fn list_ssh_profiles(
     read(&path(&app)?)
 }
 #[tauri::command]
-pub fn save_ssh_profile(
+pub async fn save_ssh_profile(
     app: AppHandle,
     store: State<'_, ProfileStore>,
     profile: Profile,
+    password: Option<String>,
 ) -> Result<Vec<Profile>, String> {
-    let _guard = store.0.lock().unwrap();
-    save(&path(&app)?, profile)
+    let lock = store.0.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = lock.lock().unwrap();
+        let path = path(&app)?;
+        let old = read(&path)?.into_iter().find(|p| p.id == profile.id);
+        let mut profile = profile;
+        profile.name = profile.name.trim().into();
+        profile.validate()?;
+        if !profile.id.is_empty() && old.is_none() {
+            return Err("Connection no longer exists. Reload before saving.".into());
+        }
+        if profile.id.is_empty() && read(&path)?.len() >= 100 {
+            return Err("You can save up to 100 SSH connections".into());
+        }
+        if profile.auth_method == AuthMethod::Key {
+            profile.remember_password = false;
+        }
+        let endpoint_changed = old.as_ref().is_some_and(|old| {
+            old.host != profile.host || old.port != profile.port || old.username != profile.username
+        });
+        if profile.id.is_empty() {
+            profile.id = uuid::Uuid::new_v4().to_string();
+        }
+        let has_new = password.as_ref().is_some_and(|p| !p.is_empty());
+        if profile.remember_password {
+            if has_new {
+                crate::credentials::set(&profile, password.as_deref().unwrap())?;
+            } else if endpoint_changed || !crate::credentials::has(&profile)? {
+                return Err("Enter a password to remember for this server".into());
+            }
+        }
+        if let Some(old) = &old {
+            if endpoint_changed || !profile.remember_password {
+                crate::credentials::forget(old)?;
+            }
+        }
+        let mut profiles = read(&path)?;
+        if let Some(existing) = profiles.iter_mut().find(|p| p.id == profile.id) {
+            *existing = profile;
+        } else {
+            if profiles.len() >= 100 {
+                return Err("You can save up to 100 SSH connections".into());
+            }
+            profiles.push(profile);
+        }
+        write(&path, &profiles)?;
+        Ok(profiles)
+    })
+    .await
+    .map_err(|_| "Keychain operation could not finish".to_string())?
 }
 #[tauri::command]
-pub fn delete_ssh_profile(
+pub async fn delete_ssh_profile(
     app: AppHandle,
     store: State<'_, ProfileStore>,
     id: String,
 ) -> Result<Vec<Profile>, String> {
-    let _guard = store.0.lock().unwrap();
-    let path = path(&app)?;
-    let mut profiles = read(&path)?;
-    profiles.retain(|p| p.id != id);
-    write(&path, &profiles)?;
-    Ok(profiles)
+    let lock = store.0.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = lock.lock().unwrap();
+        let path = path(&app)?;
+        let mut profiles = read(&path)?;
+        if let Some(profile) = profiles.iter().find(|p| p.id == id) {
+            crate::credentials::forget(profile)?;
+        }
+        profiles.retain(|p| p.id != id);
+        write(&path, &profiles)?;
+        Ok(profiles)
+    })
+    .await
+    .map_err(|_| "Keychain operation could not finish".to_string())?
+}
+#[tauri::command]
+pub async fn forget_ssh_password(
+    app: AppHandle,
+    store: State<'_, ProfileStore>,
+    id: String,
+) -> Result<Vec<Profile>, String> {
+    let lock = store.0.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = lock.lock().unwrap();
+        let path = path(&app)?;
+        let mut profiles = read(&path)?;
+        let profile = profiles
+            .iter_mut()
+            .find(|p| p.id == id)
+            .ok_or("Connection no longer exists")?;
+        crate::credentials::forget(profile)?;
+        profile.remember_password = false;
+        write(&path, &profiles)?;
+        Ok(profiles)
+    })
+    .await
+    .map_err(|_| "Keychain operation could not finish".to_string())?
 }
 pub fn get(app: &AppHandle, store: &ProfileStore, id: &str) -> Result<Profile, String> {
     let _guard = store.0.lock().unwrap();
@@ -274,6 +357,7 @@ mod tests {
             username: "tester".into(),
             identity_file: String::new(),
             auth_method: AuthMethod::Auto,
+            remember_password: false,
         }
     }
     #[test]
@@ -374,6 +458,7 @@ mod tests {
         use std::time::Duration;
         let dir = PathBuf::from(std::env::var("ULTRON_TEST_SSH_DIR").unwrap());
         let mut base = profile();
+        base.id = uuid::Uuid::new_v4().to_string();
         base.username = "ultron-test".into();
         base.port = std::env::var("ULTRON_TEST_SSH_PORT")
             .unwrap()
@@ -403,6 +488,18 @@ mod tests {
                 .unwrap();
             let mut command = portable_pty::CommandBuilder::new("/usr/bin/ssh");
             command.args(fixture_args(profile, "known_hosts"));
+            let _askpass = if profile.remember_password {
+                let config = crate::credentials::Askpass::prepare(
+                    profile,
+                    Path::new(&std::env::var("ULTRON_TEST_ASKPASS_BIN").unwrap()),
+                    &pair.master.tty_name().unwrap(),
+                )
+                .unwrap();
+                config.apply(&mut command);
+                Some(config)
+            } else {
+                None
+            };
             command.env("TERM", "xterm-256color");
             let mut child = pair.slave.spawn_command(command).unwrap();
             drop(pair.slave);
@@ -419,6 +516,7 @@ mod tests {
             let mut bytes = [0; 4096];
             let mut sent_password = false;
             let mut sent_command = false;
+            let mut sent_otp = false;
             loop {
                 match reader.read(&mut bytes) {
                     Ok(0) | Err(_) => break,
@@ -434,6 +532,11 @@ mod tests {
                             writer.write_all(b"ultron-fixture-password\n").unwrap();
                             writer.flush().unwrap();
                             sent_password = true;
+                        }
+                        if !sent_otp && text.to_ascii_lowercase().contains("verification code:") {
+                            writer.write_all(b"123456\n").unwrap();
+                            writer.flush().unwrap();
+                            sent_otp = true;
                         }
                         if !sent_command && text.contains("ULTRON_SSH_READY") {
                             writer.write_all(b"ultron-ping\nexit\n").unwrap();
@@ -473,6 +576,48 @@ mod tests {
             assert!(success, "{mode:?}: {text}");
             assert!(text.contains("ULTRON_SSH_PONG"), "{text}");
             assert!(text.contains(&format!("AUTH={expected}")), "{text}");
+        }
+        if std::env::var("ULTRON_TEST_ASKPASS_BIN").is_ok() {
+            struct Cleanup(Profile);
+            impl Drop for Cleanup {
+                fn drop(&mut self) {
+                    let _ = crate::credentials::forget(&self.0);
+                }
+            }
+            let mut remembered = base.clone();
+            remembered.auth_method = AuthMethod::Password;
+            remembered.remember_password = true;
+            let _cleanup = Cleanup(remembered.clone());
+            crate::credentials::set(&remembered, "ultron-fixture-password").unwrap();
+            assert!(crate::credentials::has(&remembered).unwrap());
+            let (ok, text) = connect(&remembered);
+            assert!(ok, "{text}");
+            assert!(text.contains("AUTH=password"), "{text}");
+            assert!(
+                !text.to_ascii_lowercase().contains("password:"),
+                "Saved password should not require typing"
+            );
+            crate::credentials::set(&remembered, "wrong-fixture-password").unwrap();
+            let (ok, text) = connect(&remembered);
+            assert!(ok, "{text}");
+            assert!(text.to_ascii_lowercase().contains("password:"));
+            assert!(!text.contains("wrong-fixture-password"));
+            assert!(!crate::credentials::has(&remembered).unwrap());
+            let mut two_factor = remembered.clone();
+            two_factor.username = "ultron-2fa".into();
+            let _cleanup2 = Cleanup(two_factor.clone());
+            crate::credentials::set(&two_factor, "ultron-fixture-password").unwrap();
+            let (ok, text) = connect(&two_factor);
+            assert!(ok, "{text}");
+            assert!(text.contains("AUTH=password+otp"), "{text}");
+            assert!(text.to_ascii_lowercase().contains("verification code:"));
+            assert!(!text.contains("123456"));
+            assert!(crate::credentials::has(&two_factor).unwrap());
+            crate::credentials::forget(&two_factor).unwrap();
+            assert!(!crate::credentials::has(&two_factor).unwrap());
+            let (ok, text) = connect(&two_factor);
+            assert!(ok, "{text}");
+            assert!(text.to_ascii_lowercase().contains("password:"));
         }
         let mut key_only = base.clone();
         key_only.auth_method = AuthMethod::Key;

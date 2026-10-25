@@ -1171,3 +1171,36 @@ aside nav {
   outline: 2px solid var(--red);
   outline-offset: -2px;
 }
+.remember-password {
+  border-top: 1px solid #2c323d;
+  padding-top: 15px;
+  margin-top: 4px;
+}
+.ssh-fields .remember-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ssh-fields .remember-toggle input {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  accent-color: #f2747c;
+  padding: 0;
+  margin: 0;
+}
+.remember-password p {
+  font-size: 10px;
+  line-height: 1.6;
+  color: #7c8696;
+  margin: 8px 0 0;
+}
+.forget-password {
+  color: #e7a0ab;
+  font-size: 11px;
+  padding: 4px 0;
+}
+.forget-password:disabled {
+  opacity: 0.4;
+}

@@ -19,6 +19,7 @@ struct Session {
     writer: Mutex<Box<dyn Write + Send>>,
     killer: Mutex<Box<dyn ChildKiller + Send + Sync>>,
     flow: (Mutex<Flow>, Condvar),
+    _askpass: Option<crate::credentials::Askpass>,
 }
 #[derive(Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -50,6 +51,9 @@ fn size(cols: u16, rows: u16) -> Result<PtySize, String> {
 }
 impl Session {
     fn stop(&self) {
+        if let Some(askpass) = &self._askpass {
+            askpass.cancel();
+        }
         let mut flow = self.flow.0.lock().unwrap();
         if flow.closed {
             return;
@@ -121,6 +125,23 @@ pub fn open_terminal(
         cmd.arg("-l");
         cmd.arg("-i");
     }
+    let askpass = if let Some(profile) = profile
+        .as_ref()
+        .filter(|p| p.remember_password && p.auth_method != crate::ssh::AuthMethod::Key)
+    {
+        let config = crate::credentials::Askpass::prepare(
+            profile,
+            &std::env::current_exe().map_err(|e| e.to_string())?,
+            &pair
+                .master
+                .tty_name()
+                .ok_or("SSH terminal path is unavailable")?,
+        )?;
+        config.apply(&mut cmd);
+        Some(config)
+    } else {
+        None
+    };
     cmd.cwd(&cwd);
     cmd.env("TERM", "xterm-256color");
     cmd.env("COLORTERM", "truecolor");
@@ -140,6 +161,7 @@ pub fn open_terminal(
         }
     };
     let session = Arc::new(Session {
+        _askpass: askpass,
         master: Mutex::new(pair.master),
         writer: Mutex::new(writer),
         killer: Mutex::new(child.clone_killer()),
@@ -319,6 +341,7 @@ mod tests {
             drop(pair.slave);
             let writer = pair.master.take_writer().unwrap();
             let session = Arc::new(Session {
+                _askpass: None,
                 master: Mutex::new(pair.master),
                 writer: Mutex::new(writer),
                 killer: Mutex::new(child.clone_killer()),

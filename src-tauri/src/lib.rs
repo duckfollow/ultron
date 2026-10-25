@@ -1,3 +1,4 @@
+pub mod credentials;
 mod ssh;
 mod terminal;
 use tauri::Manager;
@@ -15,7 +16,8 @@ pub fn run() {
             terminal::close_terminal,
             ssh::list_ssh_profiles,
             ssh::save_ssh_profile,
-            ssh::delete_ssh_profile
+            ssh::delete_ssh_profile,
+            ssh::forget_ssh_password
         ])
         .build(tauri::generate_context!())
         .expect("Unable to build Ultron")

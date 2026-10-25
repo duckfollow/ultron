@@ -13,7 +13,8 @@
     "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
     "format": "prettier --write src scripts *.json *.ts *.html && cargo fmt --manifest-path src-tauri/Cargo.toml",
     "test": "node --experimental-strip-types --test src/workspace-model.test.ts",
-    "test:ssh": "node scripts/test-ssh.mjs"
+    "test:ssh": "node scripts/test-ssh.mjs",
+    "test:keychain": "node scripts/test-ssh.mjs --keychain"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

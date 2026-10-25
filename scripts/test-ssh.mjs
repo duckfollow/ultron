@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { execFileSync, spawn } from "node:child_process";
 import { once } from "node:events";
 import ssh2 from "ssh2";
+import { fileURLToPath } from "node:url";
+const testKeychain = process.argv.includes("--keychain");
 const directory = await mkdtemp(join(tmpdir(), "ultron-ssh-test-"));
 const connections = new Set();
 let server;
@@ -27,8 +29,34 @@ try {
       connections.add(client);
       client.on("close", () => connections.delete(client));
       client.on("error", () => {});
-      let authenticatedWith = "";
+      let authenticatedWith = "",
+        firstFactor = false;
       client.on("authentication", (context) => {
+        if (context.username === "ultron-2fa") {
+          if (
+            !firstFactor &&
+            context.method === "password" &&
+            context.password === "ultron-fixture-password"
+          ) {
+            firstFactor = true;
+            context.reject(["keyboard-interactive"], true);
+            return;
+          }
+          if (firstFactor && context.method === "keyboard-interactive") {
+            context.prompt(
+              [{ prompt: "Verification code: ", echo: false }],
+              (answers) => {
+                if (answers[0] === "123456") {
+                  authenticatedWith = "password+otp";
+                  context.accept();
+                } else context.reject(["keyboard-interactive"]);
+              },
+            );
+            return;
+          }
+          context.reject(firstFactor ? ["keyboard-interactive"] : ["password"]);
+          return;
+        }
         const methods =
           context.username === "ultron-interactive"
             ? ["keyboard-interactive"]
@@ -116,6 +144,15 @@ try {
     join(directory, "wrong_hosts"),
     `[127.0.0.1]:${port} ${wrong}\n`,
   );
+  if (testKeychain) {
+    const build = spawn(
+      "cargo",
+      ["build", "--manifest-path", "src-tauri/Cargo.toml", "--bin", "Ultron"],
+      { stdio: "inherit" },
+    );
+    const [code] = await once(build, "exit");
+    if (code !== 0) throw Error("Unable to build askpass helper");
+  }
   const child = spawn(
     "cargo",
     [
@@ -134,6 +171,13 @@ try {
         ...process.env,
         ULTRON_TEST_SSH_PORT: String(port),
         ULTRON_TEST_SSH_DIR: directory,
+        ...(testKeychain
+          ? {
+              ULTRON_TEST_ASKPASS_BIN: fileURLToPath(
+                new URL("../src-tauri/target/debug/Ultron", import.meta.url),
+              ),
+            }
+          : {}),
       },
     },
   );

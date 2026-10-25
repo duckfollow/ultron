@@ -673,6 +673,7 @@ function App() {
         <SshProfileDialog
           key={profileDialog.id || "new"}
           initial={profileDialog}
+          onForgot={setProfiles}
           canConnect={sessionCount < 12}
           onClose={closeProfileDialog}
           onSaved={(updated, saved, connect) => {

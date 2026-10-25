@@ -8,9 +8,11 @@ export function SshProfileDialog({
   onClose,
   onSaved,
   canConnect,
+  onForgot,
 }: {
   initial: SshProfile;
   canConnect: boolean;
+  onForgot: (profiles: SshProfile[]) => void;
   onClose: () => void;
   onSaved: (
     profiles: SshProfile[],
@@ -23,15 +25,53 @@ export function SshProfileDialog({
   const [draft, setDraft] = useState({
       ...initial,
       authMethod: initial.authMethod ?? "auto",
+      rememberPassword: initial.rememberPassword ?? false,
     }),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const [password, setPassword] = useState(""),
+    [storedAvailable, setStoredAvailable] = useState(
+      initial.rememberPassword ?? false,
+    );
   useEffect(() => {
     dialog.current?.showModal();
     nameInput.current?.focus();
   }, []);
-  const patch = (change: Partial<SshProfile>) =>
-    setDraft((old) => ({ ...old, ...change }));
+  const patch = (change: Partial<SshProfile>) => {
+    const endpointChanged =
+      (change.host !== undefined && change.host !== draft.host) ||
+      (change.port !== undefined && change.port !== draft.port) ||
+      (change.username !== undefined && change.username !== draft.username);
+    if (endpointChanged || change.authMethod === "key") {
+      setPassword("");
+      setStoredAvailable(false);
+    }
+    setDraft((old) => ({
+      ...old,
+      ...change,
+      ...(endpointChanged || change.authMethod === "key"
+        ? { rememberPassword: false }
+        : {}),
+    }));
+  };
+  async function forget() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const profiles = await invoke<SshProfile[]>("forget_ssh_password", {
+        id: initial.id,
+      });
+      setPassword("");
+      setStoredAvailable(false);
+      setDraft((old) => ({ ...old, rememberPassword: false }));
+      onForgot(profiles);
+    } catch (error) {
+      setError(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
   async function save(connectAfter: boolean) {
     if (busy) return;
     setBusy(true);
@@ -46,6 +86,7 @@ export function SshProfileDialog({
       };
       const profiles = await invoke<SshProfile[]>("save_ssh_profile", {
         profile,
+        password: profile.rememberPassword && password ? password : null,
       });
       const saved =
         profiles.find((p) => p.id === profile.id) ??
@@ -201,13 +242,61 @@ export function SshProfileDialog({
               </div>
             </label>
           )}
+          {draft.authMethod !== "key" && (
+            <div className="remember-password">
+              <label className="remember-toggle">
+                <input
+                  type="checkbox"
+                  checked={draft.rememberPassword}
+                  onChange={(event) => {
+                    patch({ rememberPassword: event.target.checked });
+                    if (!event.target.checked) setPassword("");
+                  }}
+                />{" "}
+                Remember password in Keychain
+              </label>
+              {draft.rememberPassword && (
+                <label>
+                  Login password
+                  <input
+                    type="password"
+                    autoComplete="off"
+                    aria-label="Login password to remember"
+                    value={password}
+                    required={!storedAvailable}
+                    maxLength={8192}
+                    placeholder={
+                      storedAvailable
+                        ? "Leave blank to keep saved password"
+                        : "Enter login password"
+                    }
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+                </label>
+              )}
+              {initial.id && initial.rememberPassword && (
+                <button
+                  type="button"
+                  className="forget-password"
+                  disabled={busy || !storedAvailable}
+                  onClick={() => void forget()}
+                >
+                  Forget password
+                </button>
+              )}
+              <p>
+                Stored only in macOS Keychain. OTP / 2FA codes are always
+                entered in the terminal.
+              </p>
+            </div>
+          )}
         </fieldset>
         <p className="ssh-hint">
           {draft.authMethod === "password"
-            ? "Your password is requested in the terminal. The server must allow password sign-in. Passwords are not saved."
+            ? "Your password is requested in the terminal. The server must allow password sign-in."
             : draft.authMethod === "key"
               ? "Choose a private key. Its passphrase, if needed, is requested in the terminal and is not saved."
-              : "Tries SSH keys first, then asks for a password if the server allows it. Passwords are not saved."}{" "}
+              : "Tries SSH keys first, then asks for a password if the server allows it."}{" "}
           New host verification appears in the terminal.
         </p>
         {error && (
