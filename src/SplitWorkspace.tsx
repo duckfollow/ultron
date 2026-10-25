@@ -63,7 +63,11 @@ export function SplitWorkspace({
               >
                 <i className={`state-dot ${pane.state}`} />
                 <span>{index + 1}</span>
-                <span>{pane.info?.shell.split("/").pop() ?? "shell"}</span>
+                <span>
+                  {pane.sshProfile
+                    ? "SSH"
+                    : (pane.info?.shell.split("/").pop() ?? "shell")}
+                </span>
                 <small>
                   {pane.state === "ended"
                     ? "Session ended"
@@ -84,6 +88,7 @@ export function SplitWorkspace({
           <div className="pane-content">
             <TerminalPane
               visible={visible}
+              profileId={pane.sshProfile?.id}
               focused={visible && tab.activePane === pane.id}
               onFocus={() => focusPane(pane.id)}
               register={(handle) => register(pane.id, handle)}

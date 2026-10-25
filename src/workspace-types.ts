@@ -1,6 +1,8 @@
 import type { SessionInfo } from "./TerminalPane";
 import type { Layout, TabColor } from "./workspace-model";
+import type { SshProfile } from "./ssh-model";
 export type Pane = {
+  sshProfile?: SshProfile;
   id: string;
   title: string;
   state: "starting" | "live" | "ended";

@@ -34,6 +34,8 @@ pub struct Info {
     shell: String,
     cwd: String,
     pid: Option<u32>,
+    transport: String,
+    target: Option<String>,
 }
 fn size(cols: u16, rows: u16) -> Result<PtySize, String> {
     if !(2..=1000).contains(&cols) || !(1..=500).contains(&rows) {
@@ -89,6 +91,9 @@ pub fn open_terminal(
     cols: u16,
     rows: u16,
     output: Channel<Output>,
+    app: tauri::AppHandle,
+    profiles: State<'_, crate::ssh::ProfileStore>,
+    profile_id: Option<String>,
 ) -> Result<Info, String> {
     let mut sessions = state.0.lock().unwrap();
     if sessions.len() >= 12 {
@@ -97,14 +102,25 @@ pub fn open_terminal(
     let pair = native_pty_system()
         .openpty(size(cols, rows)?)
         .map_err(|e| e.to_string())?;
-    let shell = std::env::var("SHELL")
-        .ok()
-        .filter(|p| std::path::Path::new(p).is_absolute() && std::path::Path::new(p).is_file())
-        .unwrap_or_else(|| "/bin/zsh".into());
+    let profile = profile_id
+        .map(|id| crate::ssh::get(&app, &profiles, &id))
+        .transpose()?;
+    let shell = if profile.is_some() {
+        "/usr/bin/ssh".into()
+    } else {
+        std::env::var("SHELL")
+            .ok()
+            .filter(|p| std::path::Path::new(p).is_absolute() && std::path::Path::new(p).is_file())
+            .unwrap_or_else(|| "/bin/zsh".into())
+    };
     let cwd = std::env::var("HOME").unwrap_or_else(|_| "/".into());
     let mut cmd = CommandBuilder::new(&shell);
-    cmd.arg("-l");
-    cmd.arg("-i");
+    if let Some(profile) = &profile {
+        cmd.args(crate::ssh::arguments(profile, std::path::Path::new(&cwd))?);
+    } else {
+        cmd.arg("-l");
+        cmd.arg("-i");
+    }
     cmd.cwd(&cwd);
     cmd.env("TERM", "xterm-256color");
     cmd.env("COLORTERM", "truecolor");
@@ -189,6 +205,8 @@ pub fn open_terminal(
         shell,
         cwd,
         pid,
+        transport: if profile.is_some() { "ssh" } else { "local" }.into(),
+        target: profile.map(|p| format!("{}@{}:{}", p.username, p.host, p.port)),
     })
 }
 #[tauri::command]

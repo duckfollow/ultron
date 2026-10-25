@@ -803,3 +803,190 @@ footer > div {
   max-height: 90vh;
   overflow: auto;
 }
+.ssh-connections {
+  margin-top: 22px;
+  position: relative;
+}
+.ssh-connections .section-label {
+  margin: 0 8px 8px;
+  align-items: center;
+}
+.ssh-connections .section-label .icon-button {
+  width: 22px;
+  height: 22px;
+}
+.ssh-empty {
+  color: #656b78;
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 0 10px 7px;
+}
+.ssh-profile-list {
+  max-height: 28vh;
+  overflow: auto;
+  padding: 0 0 3px;
+}
+.ssh-profile-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.ssh-profile {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+  padding: 10px 8px;
+  color: #a6bcc6;
+  text-align: left;
+}
+.ssh-profile > svg {
+  flex-shrink: 0;
+  color: #799cab;
+}
+.ssh-profile > span {
+  font-size: 11px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ssh-profile small {
+  display: block;
+  font:
+    9px Menlo,
+    monospace;
+  color: #626e7d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 5px;
+}
+.ssh-profile:hover {
+  background: #20262d;
+  border-radius: 5px;
+}
+.ssh-profile-more {
+  width: 22px;
+  height: 24px;
+  color: #737c89;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.ssh-profile-more:hover {
+  background: #272d37;
+}
+.ssh-profile-menu {
+  position: fixed;
+  z-index: 8;
+  left: 205px;
+  width: 196px;
+  padding: 5px;
+  background: #202229;
+  border: 1px solid #363b46;
+  border-radius: 7px;
+  box-shadow: 0 8px 30px #0008;
+}
+.ssh-profile-menu button {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 9px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+.ssh-profile-menu button:hover,
+.ssh-profile-menu button:focus-visible {
+  background: #303641;
+}
+.ssh-profile-menu hr {
+  border: 0;
+  border-top: 1px solid #343943;
+  margin: 4px;
+}
+.ssh-profile-menu .delete-profile {
+  color: #e5a0a8;
+}
+.ssh-list-error {
+  font-size: 10px;
+  line-height: 1.6;
+  margin: 0 9px 12px;
+  color: #ed9eaa;
+}
+.ssh-dialog {
+  width: 440px;
+}
+.ssh-dialog p.ssh-hint {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #858b98;
+  margin: 14px 0 0;
+}
+.ssh-fields {
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.ssh-fields label {
+  display: block;
+  color: #b5bac7;
+  font-size: 11px;
+  margin: 0 0 15px;
+}
+.ssh-fields input {
+  display: block;
+  width: 100%;
+  border: 1px solid #393f4b;
+  background: #111217;
+  border-radius: 5px;
+  padding: 9px 10px;
+  color: #dfe4ed;
+  font-size: 12px;
+  margin-top: 7px;
+}
+.ssh-field-row {
+  display: flex;
+  gap: 12px;
+}
+.ssh-field-row > label {
+  flex: 1;
+  min-width: 0;
+}
+.ssh-field-row .ssh-port {
+  flex: 0 0 82px;
+}
+.optional {
+  color: #656d7c;
+  font-size: 10px;
+  margin-left: 5px;
+}
+.ssh-key-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ssh-key-field input {
+  min-width: 0;
+}
+.ssh-key-field button {
+  margin-top: 7px;
+}
+.ssh-dialog .secondary-action {
+  padding: 8px 13px;
+  background: #30343f;
+  border: 1px solid #454d5c;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.form-error {
+  color: #eda0ab !important;
+  font-size: 11px !important;
+  overflow-wrap: anywhere;
+}
+.delete-ssh-dialog {
+  width: 380px;
+}
+.ssh-profile-menu button:disabled {
+  opacity: 0.35;
+}
+aside nav {
+  min-height: 45px;
+  flex-shrink: 1;
+}

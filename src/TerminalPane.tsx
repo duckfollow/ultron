@@ -9,6 +9,8 @@ export type SessionInfo = {
   shell: string;
   cwd: string;
   pid?: number;
+  transport: "local" | "ssh";
+  target?: string;
 };
 export type TerminalHandle = {
   focus: () => void;
@@ -22,6 +24,7 @@ type Output =
   | { type: "error"; message: string };
 export function TerminalPane({
   visible,
+  profileId,
   focused,
   onFocus,
   register,
@@ -31,6 +34,7 @@ export function TerminalPane({
   onSize,
 }: {
   visible: boolean;
+  profileId?: string;
   focused: boolean;
   onFocus: () => void;
   register: (handle: TerminalHandle | null) => void;
@@ -172,6 +176,7 @@ export function TerminalPane({
     void invoke<SessionInfo>("open_terminal", {
       cols: term.cols,
       rows: term.rows,
+      profileId: profileId ?? null,
       output,
     })
       .then((info) => {

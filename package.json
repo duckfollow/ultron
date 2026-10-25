@@ -12,10 +12,12 @@
     "tauri": "tauri",
     "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
     "format": "prettier --write src scripts *.json *.ts *.html && cargo fmt --manifest-path src-tauri/Cargo.toml",
-    "test": "node --experimental-strip-types --test src/workspace-model.test.ts"
+    "test": "node --experimental-strip-types --test src/workspace-model.test.ts",
+    "test:ssh": "node scripts/test-ssh.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.8.3",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-search": "^0.15.0",
     "@xterm/xterm": "^5.5.0",
@@ -30,6 +32,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4",
     "prettier": "^3.9.10",
+    "ssh2": "^1.17.0",
     "typescript": "~5.9.3",
     "vite": "^6"
   }

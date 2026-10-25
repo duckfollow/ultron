@@ -1,4 +1,13 @@
 import { useState, useRef, useEffect, type CSSProperties } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { SshConnections } from "./SshConnections";
+import { SshProfileDialog } from "./SshProfileDialog";
+import {
+  newSshProfile,
+  profileAddress,
+  type SshProfile,
+  type ConnectTarget,
+} from "./ssh-model";
 import { createRoot } from "react-dom/client";
 import {
   Terminal,
@@ -38,6 +47,16 @@ function App() {
     [query, setQuery] = useState(""),
     [help, setHelp] = useState(false),
     [appearance, setAppearance] = useState<string | null>(null);
+  const [profiles, setProfiles] = useState<SshProfile[]>([]),
+    [profileError, setProfileError] = useState(""),
+    [profilesLoading, setProfilesLoading] = useState(true),
+    [profileDialog, setProfileDialog] = useState<SshProfile | null>(null);
+  useEffect(() => {
+    void invoke<SshProfile[]>("list_ssh_profiles")
+      .then(setProfiles)
+      .catch((error) => setProfileError(String(error)))
+      .finally(() => setProfilesLoading(false));
+  }, []);
   const [stageSize, setStageSize] = useState({ width: 1000, height: 600 });
   const handles = useRef(new Map<string, TerminalHandle>()),
     nextNumber = useRef(2),
@@ -148,6 +167,37 @@ function App() {
       activePane: newPane.id,
     }));
   }
+  function connectSsh(profile: SshProfile, target: ConnectTarget) {
+    if (sessionCount >= 12) return;
+    if (target !== "tab" && !canSplit(target)) return;
+    clearSearch();
+    if (target === "tab") {
+      const tab = makeTab(nextNumber.current++);
+      tab.customName = profile.name;
+      tab.color = "cyan";
+      tab.panes[0].sshProfile = { ...profile };
+      setTabs((old) => [...old, tab]);
+      setActive(tab.key);
+    } else if (current && pane) {
+      const next = { ...makePane(), sshProfile: { ...profile } };
+      updateTab(current.key, (tab) => ({
+        ...tab,
+        panes: [...tab.panes, next],
+        layout: splitLayout(
+          tab.layout,
+          pane.id,
+          next.id,
+          crypto.randomUUID(),
+          target,
+        ),
+        activePane: next.id,
+      }));
+    }
+  }
+  function closeProfileDialog() {
+    setProfileDialog(null);
+    requestAnimationFrame(() => handle()?.focus());
+  }
   function nextPane() {
     if (!current) return;
     const order = [...layoutRects(current.layout).panes.keys()];
@@ -174,7 +224,14 @@ function App() {
   }, []);
   useEffect(() => {
     function keydown(event: KeyboardEvent) {
-      if (!event.metaKey || help || appearance) return;
+      if (
+        !event.metaKey ||
+        help ||
+        appearance ||
+        profileDialog ||
+        document.querySelector("dialog[open]")
+      )
+        return;
       const key = event.key.toLowerCase();
       if (key === "t") {
         event.preventDefault();
@@ -248,6 +305,22 @@ function App() {
         >
           <Plus size={16} /> New terminal <kbd>⌘ T</kbd>
         </button>
+        <SshConnections
+          profiles={profiles}
+          canConnect={sessionCount < 12}
+          error={profileError}
+          loading={profilesLoading}
+          onNew={() => setProfileDialog(newSshProfile())}
+          onEdit={setProfileDialog}
+          onConnect={connectSsh}
+          canSplit={canSplit}
+          onDelete={async (profile) => {
+            const updated = await invoke<SshProfile[]>("delete_ssh_profile", {
+              id: profile.id,
+            });
+            setProfiles(updated);
+          }}
+        />
         <div className="section-label">
           WORKSPACE <span>{String(tabs.length).padStart(2, "0")}</span>
         </div>
@@ -270,12 +343,14 @@ function App() {
                 <span>{name(tab)}</span>
                 <small>
                   {tab.panes.length > 1
-                    ? `${tab.panes.length} panes · local`
+                    ? `${tab.panes.length} panes · ${tab.panes.some((p) => p.sshProfile) ? "SSH" : "local"}`
                     : tab.panes[0].state === "starting"
                       ? "Starting shell…"
                       : tab.panes[0].state === "ended"
                         ? "Session ended"
-                        : `${tab.panes[0].info?.shell.split("/").pop()} · local`}
+                        : tab.panes[0].sshProfile
+                          ? profileAddress(tab.panes[0].sshProfile!)
+                          : `${tab.panes[0].info?.shell.split("/").pop()} · local`}
                 </small>
               </div>
               <i className="tab-color-dot" />
@@ -307,7 +382,9 @@ function App() {
           </div>
           <span className="environment">
             <i />
-            {pane?.info?.shell.split("/").pop() ?? "shell"}
+            {pane?.sshProfile
+              ? "SSH"
+              : (pane?.info?.shell.split("/").pop() ?? "shell")}
           </span>
         </header>
         <div className="tabbar" role="tablist" aria-label="Open terminals">
@@ -366,7 +443,9 @@ function App() {
             <span className="status-line" />
             {pane?.state === "ended" ? "SESSION ENDED" : "TERMINAL"}
             <small title="Starting directory">
-              {pane?.info?.cwd ?? "LOCAL SHELL"}
+              {pane?.sshProfile
+                ? profileAddress(pane.sshProfile)
+                : (pane?.info?.cwd ?? "LOCAL SHELL")}
             </small>
           </span>
           <div>
@@ -515,7 +594,9 @@ function App() {
           <span>
             <i className={`state-dot ${pane?.state ?? ""}`} />
             {pane?.state === "live"
-              ? "Connected to local shell"
+              ? pane.sshProfile
+                ? `SSH session · ${profileAddress(pane.sshProfile)}`
+                : "Connected to local shell"
               : pane?.state === "ended"
                 ? "Session ended · Open a new terminal to continue"
                 : tabs.length
@@ -528,10 +609,24 @@ function App() {
             )}
             <span>{pane ? `${pane.cols} × ${pane.rows}` : ""}</span>
             <span>UTF-8</span>
-            <span>LOCAL</span>
+            <span>{pane?.sshProfile ? "SSH" : "LOCAL"}</span>
           </div>
         </footer>
       </section>
+      {profileDialog && (
+        <SshProfileDialog
+          key={profileDialog.id || "new"}
+          initial={profileDialog}
+          canConnect={sessionCount < 12}
+          onClose={closeProfileDialog}
+          onSaved={(updated, saved, connect) => {
+            setProfiles(updated);
+            setProfileError("");
+            closeProfileDialog();
+            if (connect) connectSsh(saved, "tab");
+          }}
+        />
+      )}
       {appearanceTab && (
         <TabAppearance
           key={appearanceTab.key}
