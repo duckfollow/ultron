@@ -1,6 +1,30 @@
 # Ultron
 
-A standalone local terminal app for macOS. Separate repository, application identity, development port and storage from Dum-E.
+<img src="src-tauri/icons/128x128.png" alt="Ultron logo" width="80" height="80" />
+
+An open-source terminal for macOS with native shell sessions, split panes, and saved SSH connections. Built with Tauri, React, Rust, and xterm.js.
+
+[Download Ultron](https://github.com/duckfollow/ultron/releases) · [All releases](https://github.com/duckfollow/ultron/releases) · [Report a bug](https://github.com/duckfollow/ultron/issues)
+
+## Install
+
+The current release is an **alpha** for **Apple Silicon Macs running macOS 13.5 or later**. Download the `.dmg` from [Releases](https://github.com/duckfollow/ultron/releases), open it, and drag Ultron into Applications.
+
+Downloads are ad-hoc signed and **not notarized by Apple**. macOS Gatekeeper may block the app, including showing a “damaged” warning. If it blocks the download, build from source using the development instructions below. A notarized installer and independent testing on other Macs are still pending. Intel Macs and other operating systems are not validated.
+
+A `SHA256SUMS.txt` file accompanies each release. Compare it with the result of:
+
+```sh
+shasum -a 256 Ultron_0.1.0-alpha.1_aarch64.dmg
+```
+
+## License
+
+Ultron is available under the [MIT License](LICENSE). Bundled third-party components retain their respective licenses; see `THIRD_PARTY_NOTICES.txt` in the release assets.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and validation. When reporting issues, include the app version, macOS version, and steps to reproduce. Remove passwords, keys, OTP codes, and private server details from logs and screenshots.
 
 ## First Alpha
 

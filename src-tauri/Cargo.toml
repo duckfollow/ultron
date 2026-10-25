@@ -3,6 +3,8 @@ name = "ultron"
 version = "0.1.0-alpha.1"
 edition = "2021"
 description = "A focused local terminal for macOS"
+license = "MIT"
+repository = "https://github.com/duckfollow/ultron"
 [lib]
 name = "ultron_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]

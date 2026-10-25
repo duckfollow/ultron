@@ -36,5 +36,10 @@
     "ssh2": "^1.17.0",
     "typescript": "~5.9.3",
     "vite": "^6"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/duckfollow/ultron.git"
   }
 }
