@@ -24,6 +24,9 @@ import {
   Rows2,
   Ellipsis,
   Palette,
+  PanelLeftClose,
+  PanelLeftOpen,
+  SquareTerminal,
 } from "lucide-react";
 import type { TerminalHandle } from "./TerminalPane";
 import { makeTab, makePane, type Tab, type Pane } from "./workspace-types";
@@ -57,6 +60,20 @@ function App() {
       .catch((error) => setProfileError(String(error)))
       .finally(() => setProfilesLoading(false));
   }, []);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("ultron.sidebarCollapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("ultron.sidebarCollapsed", String(sidebarCollapsed));
+    } catch {
+      /* The rail still works when preference storage is unavailable. */
+    }
+  }, [sidebarCollapsed]);
   const [stageSize, setStageSize] = useState({ width: 1000, height: 600 });
   const handles = useRef(new Map<string, TerminalHandle>()),
     nextNumber = useRef(2),
@@ -233,7 +250,10 @@ function App() {
       )
         return;
       const key = event.key.toLowerCase();
-      if (key === "t") {
+      if (key === "b") {
+        event.preventDefault();
+        setSidebarCollapsed((value) => !value);
+      } else if (key === "t") {
         event.preventDefault();
         add();
       } else if (key === "w") {
@@ -285,28 +305,53 @@ function App() {
           : "Make the active pane larger to split";
   return (
     <main className="app">
-      <aside>
-        <div className="brand">
-          <div className="ultron-mark" aria-hidden="true">
-            <i />
-            <i />
+      <aside
+        className={sidebarCollapsed ? "sidebar collapsed" : "sidebar"}
+        aria-label="Workspace sidebar"
+      >
+        <div className="sidebar-top">
+          <div className="brand">
+            <div className="ultron-mark" aria-hidden="true">
+              <i />
+              <i />
+            </div>
+            <div className="brand-copy">
+              <strong>
+                ULTRON<span>•</span>
+              </strong>
+              <small>YOUR COMMAND CENTER</small>
+            </div>
           </div>
-          <div>
-            <strong>
-              ULTRON<span>•</span>
-            </strong>
-            <small>YOUR COMMAND CENTER</small>
-          </div>
+          <button
+            className="icon-button sidebar-toggle"
+            aria-label={
+              sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+            }
+            aria-expanded={!sidebarCollapsed}
+            title={`${sidebarCollapsed ? "Expand" : "Collapse"} sidebar (⌘ B)`}
+            onClick={() => setSidebarCollapsed((value) => !value)}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen size={16} />
+            ) : (
+              <PanelLeftClose size={16} />
+            )}
+          </button>
         </div>
         <button
           className="new-session"
+          aria-label="New terminal"
+          title="New terminal (⌘ T)"
           onClick={add}
           disabled={sessionCount >= 12}
         >
-          <Plus size={16} /> New terminal <kbd>⌘ T</kbd>
+          {sidebarCollapsed ? <SquareTerminal size={18} /> : <Plus size={16} />}
+          <span className="new-session-label">New terminal</span>
+          <kbd>⌘ T</kbd>
         </button>
         <SshConnections
           profiles={profiles}
+          compact={sidebarCollapsed}
           canConnect={sessionCount < 12}
           error={profileError}
           loading={profilesLoading}
@@ -321,8 +366,9 @@ function App() {
             setProfiles(updated);
           }}
         />
-        <div className="section-label">
-          WORKSPACE <span>{String(tabs.length).padStart(2, "0")}</span>
+        <div className="section-label workspace-section-label">
+          <span className="workspace-section-title">WORKSPACE</span>
+          <span>{String(tabs.length).padStart(2, "0")}</span>
         </div>
         <nav aria-label="Terminal sessions">
           {tabs.map((tab) => (
@@ -336,9 +382,13 @@ function App() {
                 event.preventDefault();
                 setAppearance(tab.key);
               }}
-              title="Double-click to rename or change color"
+              aria-label={name(tab)}
+              title={`${name(tab)} · Double-click to rename or change color`}
             >
               <Terminal size={15} />
+              <span className="session-index" aria-hidden="true">
+                {tab.number}
+              </span>
               <div>
                 <span>{name(tab)}</span>
                 <small>
@@ -362,8 +412,14 @@ function App() {
             <span /> LOCAL WORKSPACE
           </div>
           <p>Your shell. Your machine.</p>
-          <button onClick={() => setHelp(true)}>
-            <CircleHelp size={14} /> Keyboard shortcuts <kbd>?</kbd>
+          <button
+            onClick={() => setHelp(true)}
+            aria-label="Keyboard shortcuts"
+            title="Keyboard shortcuts"
+          >
+            <CircleHelp size={14} />
+            <span className="shortcut-label">Keyboard shortcuts</span>
+            <kbd>?</kbd>
           </button>
           <small>
             v0.1.0-alpha.1 <span>macOS</span>
@@ -667,6 +723,7 @@ function App() {
             </button>
           </header>
           {[
+            ["Toggle sidebar", "⌘ B"],
             ["New tab", "⌘ T"],
             ["Split left / right", "⌘ D"],
             ["Split top / bottom", "⌘ ⇧ D"],

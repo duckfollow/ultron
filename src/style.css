@@ -990,3 +990,160 @@ aside nav {
   min-height: 45px;
   flex-shrink: 1;
 }
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+.sidebar-top .brand {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  gap: 9px;
+}
+.sidebar-top .brand strong {
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+.sidebar-top .brand small {
+  font-size: 6px;
+  letter-spacing: 1px;
+}
+.sidebar-toggle {
+  flex-shrink: 0;
+}
+.session-index {
+  display: none;
+}
+.sidebar.collapsed {
+  width: 64px;
+  padding: 24px 8px 16px;
+}
+.sidebar.collapsed .sidebar-top {
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.sidebar.collapsed .brand {
+  flex: 0;
+}
+.sidebar.collapsed .brand-copy {
+  display: none;
+}
+.sidebar.collapsed .ultron-mark {
+  width: 32px;
+  height: 36px;
+  gap: 4px;
+}
+.sidebar.collapsed .ultron-mark i {
+  width: 8px;
+  height: 3px;
+}
+.sidebar.collapsed .new-session {
+  justify-content: center;
+  padding: 11px 0;
+  border-radius: 6px;
+}
+.sidebar.collapsed .new-session-label,
+.sidebar.collapsed .new-session kbd {
+  display: none;
+}
+.sidebar.collapsed .ssh-connections {
+  margin-top: 18px;
+}
+.sidebar.collapsed .ssh-section-title {
+  display: none;
+}
+.sidebar.collapsed .ssh-connections .section-label {
+  justify-content: center;
+  margin: 0 0 6px;
+}
+.sidebar.collapsed .ssh-connections .section-label button {
+  width: 32px;
+  height: 28px;
+}
+.sidebar.collapsed .ssh-empty {
+  display: none;
+}
+.sidebar.collapsed .ssh-list-error {
+  font-size: 0;
+  margin: 4px;
+  text-align: center;
+}
+.sidebar.collapsed .ssh-list-error::before {
+  content: "!";
+  font-size: 13px;
+}
+.sidebar.collapsed .ssh-profile {
+  padding: 10px 7px;
+  justify-content: center;
+}
+.sidebar.collapsed .ssh-profile > span {
+  display: none;
+}
+.sidebar.collapsed .ssh-profile-more {
+  width: 16px;
+}
+.sidebar.collapsed .ssh-profile-list {
+  scrollbar-width: none;
+}
+.sidebar.collapsed .ssh-profile-list::-webkit-scrollbar {
+  display: none;
+}
+.sidebar.collapsed .workspace-section-label {
+  justify-content: center;
+  margin: 22px 0 10px;
+}
+.sidebar.collapsed .workspace-section-title {
+  display: none;
+}
+.sidebar.collapsed .session {
+  position: relative;
+  justify-content: center;
+  padding: 14px 5px;
+  margin: 4px 0;
+  min-height: 44px;
+}
+.sidebar.collapsed .session > div {
+  display: none;
+}
+.sidebar.collapsed .session-index {
+  display: block;
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  font:
+    8px Menlo,
+    monospace;
+  color: #8d94a5;
+}
+.sidebar.collapsed .tab-color-dot {
+  position: absolute;
+  right: 4px;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+}
+.sidebar.collapsed .sidebar-bottom {
+  padding: 18px 0 0;
+}
+.sidebar.collapsed .sidebar-bottom .local-label,
+.sidebar.collapsed .sidebar-bottom p,
+.sidebar.collapsed .sidebar-bottom > small,
+.sidebar.collapsed .shortcut-label,
+.sidebar.collapsed .sidebar-bottom kbd {
+  display: none;
+}
+.sidebar.collapsed .sidebar-bottom > button {
+  justify-content: center;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+}
+.sidebar.collapsed nav {
+  scrollbar-width: none;
+}
+.sidebar.collapsed nav::-webkit-scrollbar {
+  display: none;
+}

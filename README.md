@@ -11,6 +11,7 @@ A standalone local terminal app for macOS. Separate repository, application iden
 - Double-click a tab (or use its … button) to set a name and color. Custom names remain fixed when the shell title changes; a blank name restores automatic titles.
 - ANSI colors, Unicode, interactive programs, Ctrl+C, terminal resizing.
 - Find output, clear scrollback, font size controls and keyboard shortcuts.
+- Collapsible sidebar with a compact 64px icon rail. Toggle with the sidebar button or ⌘ B; the preference survives restarts without restarting terminal sessions.
 - Dark interface with a custom red identity. No AI service, telemetry or cloud account.
 
 ## Develop
@@ -50,6 +51,7 @@ Scrollback is limited to 10,000 lines. Output is streamed as bytes to preserve U
 
 | Action | Shortcut |
 | --- | --- |
+| Toggle sidebar | ⌘ B |
 | Split left / right | ⌘ D |
 | Split top / bottom | ⌘ ⇧ D |
 | Focus next pane | ⌘ J |

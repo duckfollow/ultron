@@ -15,8 +15,10 @@ export function SshConnections({
   onDelete,
   canSplit,
   canConnect,
+  compact,
 }: {
   profiles: SshProfile[];
+  compact: boolean;
   canConnect: boolean;
   error: string;
   loading: boolean;
@@ -34,6 +36,7 @@ export function SshConnections({
   const menuRef = useRef<HTMLDivElement>(null),
     trigger = useRef<HTMLButtonElement | null>(null),
     dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => setMenu(null), [compact]);
   function close() {
     setMenu(null);
     trigger.current?.focus();
@@ -65,14 +68,14 @@ export function SshConnections({
   return (
     <section className="ssh-connections" aria-label="Saved SSH connections">
       <div className="section-label">
-        CONNECTIONS{" "}
+        <span className="ssh-section-title">CONNECTIONS</span>
         <button
           className="icon-button"
           aria-label="Add SSH connection"
           title="Add SSH connection"
           onClick={onNew}
         >
-          <Plus size={13} />
+          {compact ? <Server size={16} /> : <Plus size={13} />}
         </button>
       </div>
       {error && (
@@ -91,7 +94,8 @@ export function SshConnections({
               <button
                 className="ssh-profile"
                 disabled={!canConnect}
-                title={`Connect to ${profileAddress(profile)} in a new tab`}
+                aria-label={`Connect to ${profile.name}`}
+                title={`${profile.name} · ${profileAddress(profile)} · Connect in new tab`}
                 onClick={() => onConnect(profile, "tab")}
               >
                 <Server size={13} />
