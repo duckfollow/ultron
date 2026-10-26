@@ -1,6 +1,6 @@
 [package]
 name = "ultron"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 edition = "2021"
 description = "A focused local terminal for macOS"
 license = "MIT"

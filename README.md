@@ -15,7 +15,7 @@ Downloads are ad-hoc signed and **not notarized by Apple**. macOS Gatekeeper may
 A `SHA256SUMS.txt` file accompanies each release. Compare it with the result of:
 
 ```sh
-shasum -a 256 Ultron_0.1.0-alpha.1_aarch64.dmg
+shasum -a 256 Ultron_0.1.0-alpha.2_aarch64.dmg
 ```
 
 ## License
