@@ -124,3 +124,27 @@ export function tabName(
       : `Terminal ${String(number).padStart(2, "0")}`)
   );
 }
+
+// Exchange positions without replacing pane IDs or restarting their sessions.
+export function swapPanePositions(
+  layout: Layout,
+  firstId: string,
+  secondId: string,
+): Layout {
+  const ids = layoutRects(layout).panes;
+  if (firstId === secondId || !ids.has(firstId) || !ids.has(secondId))
+    return layout;
+  const swap = (node: Layout): Layout =>
+    node.type === "pane"
+      ? {
+          ...node,
+          id:
+            node.id === firstId
+              ? secondId
+              : node.id === secondId
+                ? firstId
+                : node.id,
+        }
+      : { ...node, first: swap(node.first), second: swap(node.second) };
+  return swap(layout);
+}

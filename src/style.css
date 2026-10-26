@@ -193,7 +193,7 @@ nav {
   color: #646773;
   margin: 9px 0 22px;
 }
-.sidebar-bottom button {
+.sidebar-bottom > button {
   font-size: 10px;
   color: #8c8f9a;
   padding: 0;

@@ -12,7 +12,7 @@
     "tauri": "tauri",
     "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
     "format": "prettier --write src scripts *.json *.ts *.html && cargo fmt --manifest-path src-tauri/Cargo.toml",
-    "test": "node --experimental-strip-types --test src/workspace-model.test.ts src/ssh-status.test.ts",
+    "test": "node --experimental-strip-types --test src/workspace-model.test.ts src/ssh-status.test.ts src/snippets-model.test.ts src/utop-model.test.ts src/workspace-types.test.ts",
     "test:ssh": "node scripts/test-ssh.mjs",
     "test:keychain": "node scripts/test-ssh.mjs --keychain"
   },

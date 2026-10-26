@@ -73,15 +73,15 @@ Scrollback is limited to 10,000 lines. Output is streamed as bytes to preserve U
 
 ## Split and tab shortcuts
 
-| Action | Shortcut |
-| --- | --- |
-| Toggle sidebar | ⌘ B |
-| Split left / right | ⌘ D |
-| Split top / bottom | ⌘ ⇧ D |
-| Focus next pane | ⌘ J |
-| Close active pane | ⌘ W |
-| Close whole tab | ⌘ ⇧ W |
-| Switch tab | ⌘ 1–9 |
+| Action             | Shortcut |
+| ------------------ | -------- |
+| Toggle sidebar     | ⌘ B      |
+| Split left / right | ⌘ D      |
+| Split top / bottom | ⌘ ⇧ D    |
+| Focus next pane    | ⌘ J      |
+| Close active pane  | ⌘ W      |
+| Close whole tab    | ⌘ ⇧ W    |
+| Switch tab         | ⌘ 1–9    |
 
 Find, clear scrollback and font controls affect the focused pane. Names, colors and layouts are session-only, like the terminals themselves. Closing a pane does not close neighboring panes.
 
@@ -108,3 +108,25 @@ Authentication and new host-key verification happen in the terminal. OpenSSH che
 `npm run test:keychain` additionally checks saved-password sign-in, rejected-password retry, and manual OTP with disposable credentials in the local macOS Keychain.
 
 SCP/SFTP file-transfer controls are not part of this milestone. Sessions remain transient; saved SSH profiles survive app restarts.
+
+## Update checks
+
+The sidebar shows the installed version and **Check for updates**. Ultron checks the public `duckfollow/ultron` GitHub Releases feed automatically at most once per day, and allows manual checks at any time. When a newer release is available, **Download** opens its GitHub Release page in the default browser; **Later** dismisses the notice. Updates are installed manually. The control remains accessible when the sidebar is collapsed.
+
+Preview builds receive newer preview and stable releases; stable builds receive stable releases only. The newest semantic version among the most recent 100 releases is selected, ignoring drafts, invalid version tags, and build-metadata-only changes. Automatic check failures stay quiet; manual checks show an error and can be retried. Checks send the app version in the User-Agent and do not include terminal content, commands, or SSH profile information.
+
+To publish an update, keep the versions in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, and `src-tauri/tauri.conf.json` in sync, then publish a GitHub Release with a semantic version tag (for example `v0.1.0-alpha.2`) and its installer. Mark preview versions as prereleases. No GitHub token or separate update server is required for public releases.
+
+## Command snippets
+
+Open **Command snippets** in the sidebar to create named commands, search by name or content, edit, copy, and delete them. Snippets persist in local WebView storage on this device across app launches. The dialog shows the destination terminal/pane before inserting.
+
+**Insert** pastes at the active terminal cursor without sending Enter or clearing existing input. Review the current prompt first. Trailing line endings are removed. Multiline commands require the terminal application to have bracketed paste enabled; otherwise use Copy or a single line. Control sequences are rejected on insertion. Commands can be reviewed or edited in the snippet dialog before insertion, and still require Enter in the terminal to run.
+
+## Utop local system monitor
+
+Select the **Utop** activity icon in the top-right corner to choose a new tab, a left/right split, or a top/bottom split for the machine running Ultron. Utop panes share the same layout as local and SSH terminals. Resize dividers, drag a pane header onto another pane to swap positions, or use its Swap button. Closing a Utop pane leaves the other sessions running. CPU (including logical cores and load average), RAM/swap, per-interface network rates, mounted disk capacity, and searchable/sortable processes are collected through native OS APIs. It always shows **Local machine**, even when an SSH terminal is open. Existing terminal panes stay open when switching to Utop. The monitor is read only. Its layout adapts to the pane width, with scrolling for smaller panes. Monitor panes count toward the existing limits of four panes per tab and twelve panes per workspace.
+
+Choose a 1, 2, or 5 second refresh interval, or pause and resume. Sampling stops when the containing workspace tab is inactive or the page is hidden. Visible Utop panes continue refreshing while a neighboring terminal has focus; native snapshots are shared to avoid duplicate sampling. Graphs retain up to 2 minutes in memory. CPU and network rates warm up over two samples; long gaps start a new baseline. Network rates use the actual elapsed sample time and one selected interface, rather than summing interfaces. Process CPU uses 100% per logical core, so a process may exceed 100%; total CPU stays within 0–100%. Process memory is resident memory as reported by the OS. The table displays the first 200 matches after filtering and sorting.
+
+Disk capacities are shown per mount and are not summed because APFS volumes can share container capacity. Disk metadata refreshes approximately every 10 seconds. No `sudo`, remote monitoring, process termination, telemetry, or persistent metric history is used.

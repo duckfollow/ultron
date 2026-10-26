@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   splitLayout,
+  swapPanePositions,
   removePane,
   resizeSplit,
   layoutRects,
@@ -73,4 +74,21 @@ test("custom tab names survive shell title changes and blank names restore autom
   assert.equal(tabName(1, "new directory", "Backend"), "Backend");
   assert.equal(tabName(2, "Shell", "  "), "Terminal 02");
   assert.equal(tabName(2, "project"), "02 · project");
+});
+
+test("swapping monitor and terminal positions keeps pane IDs, split ratios, and sessions stable", () => {
+  const mixed = resizeSplit(
+    splitLayout(start, "original", "utop", "mixed", "columns"),
+    "mixed",
+    0.4,
+  );
+  const swapped = swapPanePositions(mixed, "original", "utop");
+  const before = layoutRects(mixed),
+    after = layoutRects(swapped);
+  assert.deepEqual(after.panes.get("utop"), before.panes.get("original"));
+  assert.deepEqual(after.panes.get("original"), before.panes.get("utop"));
+  assert.equal(after.dividers[0].ratio, 0.4);
+  assert.deepEqual(removePane(swapped, "utop"), start);
+  assert.equal(swapPanePositions(mixed, "original", "missing"), mixed);
+  assert.equal(swapPanePositions(mixed, "utop", "utop"), mixed);
 });

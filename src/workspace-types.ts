@@ -2,6 +2,7 @@ import type { SessionInfo } from "./TerminalPane";
 import type { Layout, TabColor } from "./workspace-model";
 import type { SshProfile } from "./ssh-model";
 export type Pane = {
+  kind?: "terminal" | "utop";
   sshProfile?: SshProfile;
   id: string;
   title: string;
@@ -27,8 +28,13 @@ export const makePane = (): Pane => ({
   cols: 80,
   rows: 24,
 });
-export function makeTab(number: number): Tab {
-  const pane = makePane();
+export const makeUtopPane = (): Pane => ({
+  ...makePane(),
+  kind: "utop",
+  title: "Utop",
+  state: "live",
+});
+export function makeTab(number: number, pane = makePane()): Tab {
   return {
     key: crypto.randomUUID(),
     number,

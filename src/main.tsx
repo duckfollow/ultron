@@ -1,3 +1,6 @@
+import { UtopMenu } from "./UtopMenu";
+import { CommandSnippets } from "./CommandSnippets";
+import { UpdateNotice } from "./UpdateNotice";
 const ultronLogo = new URL("../src-tauri/icon.svg", import.meta.url).href;
 import { useState, useRef, useEffect, type CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -28,15 +31,24 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   SquareTerminal,
+  BookOpen,
+  Activity,
 } from "lucide-react";
 import type { TerminalHandle } from "./TerminalPane";
-import { makeTab, makePane, type Tab, type Pane } from "./workspace-types";
+import {
+  makeTab,
+  makePane,
+  makeUtopPane,
+  type Tab,
+  type Pane,
+} from "./workspace-types";
 import {
   colors,
   layoutRects,
   removePane,
   resizeSplit,
   splitLayout,
+  swapPanePositions,
   tabName,
   type Axis,
 } from "./workspace-model";
@@ -45,6 +57,7 @@ import { TabAppearance } from "./TabAppearance";
 import "./style.css";
 const firstTab = makeTab(1);
 function App() {
+  const [snippetsOpen, setSnippetsOpen] = useState(false);
   const [tabs, setTabs] = useState<Tab[]>([firstTab]),
     [active, setActive] = useState(firstTab.key);
   const [find, setFind] = useState(false),
@@ -83,18 +96,24 @@ function App() {
     stage = useRef<HTMLDivElement>(null);
   const current = tabs.find((tab) => tab.key === active),
     pane = current?.panes.find((p) => p.id === current.activePane);
-  const sessionCount = tabs.reduce((count, tab) => count + tab.panes.length, 0);
+  const utopActive = pane?.kind === "utop";
+  const paneCount = tabs.reduce((count, tab) => count + tab.panes.length, 0);
   const appearanceTab = tabs.find((tab) => tab.key === appearance);
   const colorValue = (tab: Tab) =>
     colors.find((c) => c.id === tab.color)!.value;
   const tabStyle = (tab: Tab) =>
     ({ "--tab-color": colorValue(tab) }) as CSSProperties;
   const name = (tab: Tab) =>
-    tabName(
-      tab.number,
-      tab.panes.find((p) => p.id === tab.activePane)?.title ?? "Shell",
-      tab.customName,
-    );
+    tab.panes.every((pane) => pane.kind === "utop") && !tab.customName
+      ? "Utop"
+      : tabName(
+          tab.number,
+          tab.panes.find((p) => p.id === tab.activePane && p.kind !== "utop")
+            ?.title ??
+            tab.panes.find((p) => p.kind !== "utop")?.title ??
+            "Utop",
+          tab.customName,
+        );
   const handle = () => (pane ? handles.current.get(pane.id) : undefined);
   function updateTab(id: string, change: (tab: Tab) => Tab) {
     setTabs((old) => old.map((tab) => (tab.key === id ? change(tab) : tab)));
@@ -115,11 +134,36 @@ function App() {
     setActive(id);
   }
   function add() {
-    if (sessionCount >= 12) return;
+    if (paneCount >= 12) return;
     const tab = makeTab(nextNumber.current++);
     clearSearch();
     setTabs((old) => [...old, tab]);
     setActive(tab.key);
+  }
+  function openUtop(target: ConnectTarget) {
+    if (paneCount >= 12) return;
+    if (target !== "tab" && !canSplit(target)) return;
+    clearSearch();
+    const monitor = makeUtopPane();
+    if (target === "tab") {
+      const tab = makeTab(nextNumber.current++, monitor);
+      tab.color = "green";
+      setTabs((old) => [...old, tab]);
+      setActive(tab.key);
+    } else if (current && pane) {
+      updateTab(current.key, (tab) => ({
+        ...tab,
+        panes: [...tab.panes, monitor],
+        layout: splitLayout(
+          tab.layout,
+          pane.id,
+          monitor.id,
+          crypto.randomUUID(),
+          target,
+        ),
+        activePane: monitor.id,
+      }));
+    }
   }
   function closeTab(id: string) {
     clearSearch();
@@ -159,7 +203,7 @@ function App() {
     });
   }
   function canSplit(axis: Axis) {
-    if (!current || !pane || sessionCount >= 12 || current.panes.length >= 4)
+    if (!current || !pane || paneCount >= 12 || current.panes.length >= 4)
       return false;
     const rect = layoutRects(current.layout).panes.get(pane.id)!;
     return axis === "columns"
@@ -186,7 +230,7 @@ function App() {
     }));
   }
   function connectSsh(profile: SshProfile, target: ConnectTarget) {
-    if (sessionCount >= 12) return;
+    if (paneCount >= 12) return;
     if (target !== "tab" && !canSplit(target)) return;
     clearSearch();
     if (target === "tab") {
@@ -274,8 +318,10 @@ function App() {
         handle()?.clear();
       } else if (key === "f") {
         event.preventDefault();
-        setFind(true);
-        findInput.current?.focus();
+        if (!utopActive) {
+          setFind(true);
+          findInput.current?.focus();
+        }
       } else if (key === "=" || key === "+") {
         event.preventDefault();
         handle()?.zoom(1);
@@ -299,8 +345,8 @@ function App() {
   const splitHint = (axis: Axis) =>
     canSplit(axis)
       ? `${axis === "columns" ? "Split left / right (⌘ D)" : "Split top / bottom (⌘ ⇧ D)"}`
-      : sessionCount >= 12
-        ? "Maximum 12 terminal sessions"
+      : paneCount >= 12
+        ? "Maximum 12 workspace panes"
         : current && current.panes.length >= 4
           ? "Maximum 4 panes per tab"
           : "Make the active pane larger to split";
@@ -346,7 +392,7 @@ function App() {
           aria-label="New terminal"
           title="New terminal (⌘ T)"
           onClick={add}
-          disabled={sessionCount >= 12}
+          disabled={paneCount >= 12}
         >
           {sidebarCollapsed ? <SquareTerminal size={18} /> : <Plus size={16} />}
           <span className="new-session-label">New terminal</span>
@@ -355,7 +401,7 @@ function App() {
         <SshConnections
           profiles={profiles}
           compact={sidebarCollapsed}
-          canConnect={sessionCount < 12}
+          canConnect={paneCount < 12}
           error={profileError}
           loading={profilesLoading}
           onNew={() => setProfileDialog(newSshProfile())}
@@ -388,7 +434,11 @@ function App() {
               aria-label={name(tab)}
               title={`${name(tab)} · Double-click to rename or change color`}
             >
-              <Terminal size={15} />
+              {tab.panes.every((pane) => pane.kind === "utop") ? (
+                <Activity size={15} />
+              ) : (
+                <Terminal size={15} />
+              )}
               <span className="session-index" aria-hidden="true">
                 {tab.number}
               </span>
@@ -396,14 +446,16 @@ function App() {
                 <span>{name(tab)}</span>
                 <small>
                   {tab.panes.length > 1
-                    ? `${tab.panes.length} panes · ${tab.panes.some((p) => p.sshProfile) ? "SSH" : "local"}`
-                    : tab.panes[0].state === "starting"
-                      ? "Starting shell…"
-                      : tab.panes[0].state === "ended"
-                        ? "Session ended"
-                        : tab.panes[0].sshProfile
-                          ? profileAddress(tab.panes[0].sshProfile!)
-                          : `${tab.panes[0].info?.shell.split("/").pop()} · local`}
+                    ? `${tab.panes.length} panes · ${tab.panes.every((p) => p.kind === "utop") ? "Local monitors" : tab.panes.some((p) => p.kind === "utop") ? "Utop + terminal" : tab.panes.some((p) => p.sshProfile) ? "SSH" : "local"}`
+                    : tab.panes[0].kind === "utop"
+                      ? "Local system monitor"
+                      : tab.panes[0].state === "starting"
+                        ? "Starting shell…"
+                        : tab.panes[0].state === "ended"
+                          ? "Session ended"
+                          : tab.panes[0].sshProfile
+                            ? profileAddress(tab.panes[0].sshProfile!)
+                            : `${tab.panes[0].info?.shell.split("/").pop()} · local`}
                 </small>
               </div>
               <i className="tab-color-dot" />
@@ -424,9 +476,16 @@ function App() {
             <span className="shortcut-label">Keyboard shortcuts</span>
             <kbd>?</kbd>
           </button>
-          <small>
-            v0.1.0-alpha.1 <span>macOS</span>
-          </small>
+          <button
+            className="snippets-button"
+            title="Command snippets"
+            aria-label="Command snippets"
+            onClick={() => setSnippetsOpen(true)}
+          >
+            <BookOpen size={14} />
+            <span className="shortcut-label">Command snippets</span>
+          </button>
+          <UpdateNotice />
         </div>
       </aside>
       <section
@@ -437,14 +496,26 @@ function App() {
           <div>
             <span className="breadcrumb">Workspace</span>
             <span className="slash">/</span>
-            <strong>{current ? name(current) : "Welcome"}</strong>
+            <strong>
+              {utopActive ? "Utop" : current ? name(current) : "Welcome"}
+            </strong>
           </div>
-          <span className="environment">
-            <i />
-            {pane?.sshProfile
-              ? "SSH"
-              : (pane?.info?.shell.split("/").pop() ?? "shell")}
-          </span>
+          <div className="topbar-actions">
+            <span className="environment">
+              <i />
+              {utopActive
+                ? "LOCAL MACHINE"
+                : pane?.sshProfile
+                  ? "SSH"
+                  : (pane?.info?.shell.split("/").pop() ?? "shell")}
+            </span>
+            <UtopMenu
+              active={!!utopActive}
+              canOpen={paneCount < 12}
+              canSplit={canSplit}
+              onOpen={openUtop}
+            />
+          </div>
         </header>
         <div className="tabbar" role="tablist" aria-label="Open terminals">
           {tabs.map((tab) => (
@@ -464,7 +535,11 @@ function App() {
                 onDoubleClick={() => setAppearance(tab.key)}
                 title={name(tab)}
               >
-                <Terminal size={13} />
+                {tab.panes.every((pane) => pane.kind === "utop") ? (
+                  <Activity size={13} />
+                ) : (
+                  <Terminal size={13} />
+                )}
                 <span className="tab-label">{name(tab)}</span>
                 {tab.panes.length > 1 && (
                   <small className="pane-count">{tab.panes.length}</small>
@@ -490,7 +565,7 @@ function App() {
           <button
             className="icon-button add-tab"
             onClick={add}
-            disabled={sessionCount >= 12}
+            disabled={paneCount >= 12}
             aria-label="New terminal"
             title="New terminal (⌘ T)"
           >
@@ -500,11 +575,17 @@ function App() {
         <div className="terminal-toolbar">
           <span>
             <span className="status-line" />
-            {pane?.state === "ended" ? "SESSION ENDED" : "TERMINAL"}
+            {utopActive
+              ? "UTOP"
+              : pane?.state === "ended"
+                ? "SESSION ENDED"
+                : "TERMINAL"}
             <small title="Starting directory">
-              {pane?.sshProfile
-                ? profileAddress(pane.sshProfile)
-                : (pane?.info?.cwd ?? "LOCAL SHELL")}
+              {utopActive
+                ? "LOCAL MACHINE"
+                : pane?.sshProfile
+                  ? profileAddress(pane.sshProfile)
+                  : (pane?.info?.cwd ?? "LOCAL SHELL")}
             </small>
           </span>
           <div>
@@ -539,6 +620,7 @@ function App() {
             <button
               className="icon-button"
               aria-label="Decrease font size"
+              disabled={!pane || utopActive}
               onClick={() => handle()?.zoom(-1)}
             >
               <Minus size={13} />
@@ -546,6 +628,7 @@ function App() {
             <button
               className="icon-button"
               aria-label="Increase font size"
+              disabled={!pane || utopActive}
               onClick={() => handle()?.zoom(1)}
             >
               <Plus size={13} />
@@ -554,6 +637,7 @@ function App() {
             <button
               className="icon-button"
               aria-label="Find in terminal"
+              disabled={!pane || utopActive}
               title="Find (⌘ F)"
               onClick={() => {
                 if (find) dismissSearch();
@@ -565,6 +649,7 @@ function App() {
             <button
               className="icon-button"
               aria-label="Clear scrollback"
+              disabled={!pane || utopActive}
               title="Clear scrollback (⌘ K)"
               onClick={() => handle()?.clear()}
             >
@@ -634,6 +719,12 @@ function App() {
               updatePane={(id, patch) => updatePane(tab.key, id, patch)}
               focusPane={(id) => focusPane(tab.key, id)}
               closePane={(id) => closePane(tab.key, id)}
+              swap={(first, second) =>
+                updateTab(tab.key, (old) => ({
+                  ...old,
+                  layout: swapPanePositions(old.layout, first, second),
+                }))
+              }
               resize={(id, ratio) =>
                 updateTab(tab.key, (old) => ({
                   ...old,
@@ -657,32 +748,55 @@ function App() {
         <footer>
           <span>
             <i className={`state-dot ${pane?.state ?? ""}`} />
-            {pane?.state === "live"
-              ? pane.sshProfile
-                ? `SSH session · ${profileAddress(pane.sshProfile)}`
-                : "Connected to local shell"
-              : pane?.state === "ended"
-                ? "Session ended"
-                : tabs.length
-                  ? "Starting…"
-                  : "No open terminals"}
+            {utopActive
+              ? "Utop · Local machine · Read only"
+              : pane?.state === "live"
+                ? pane.sshProfile
+                  ? `SSH session · ${profileAddress(pane.sshProfile)}`
+                  : "Connected to local shell"
+                : pane?.state === "ended"
+                  ? "Session ended"
+                  : tabs.length
+                    ? "Starting…"
+                    : "No open terminals"}
           </span>
           <div>
             {current && current.panes.length > 1 && (
               <span>{current.panes.length} PANES</span>
             )}
-            <span>{pane ? `${pane.cols} × ${pane.rows}` : ""}</span>
+            <span>
+              {pane && !utopActive ? `${pane.cols} × ${pane.rows}` : ""}
+            </span>
             <span>UTF-8</span>
             <span>{pane?.sshProfile ? "SSH" : "LOCAL"}</span>
           </div>
         </footer>
       </section>
+      {snippetsOpen && (
+        <CommandSnippets
+          target={
+            pane && !utopActive
+              ? `${current ? name(current) : "Terminal"} · ${pane.sshProfile ? profileAddress(pane.sshProfile) : "Local shell"}`
+              : "No active terminal"
+          }
+          canInsert={pane?.state === "live" && !utopActive}
+          onClose={() => setSnippetsOpen(false)}
+          onInsert={(command) => {
+            const terminal = handle();
+            if (!terminal || pane?.state !== "live" || utopActive)
+              throw Error("Select a running terminal before inserting.");
+            terminal.insertSnippet(command);
+            setSnippetsOpen(false);
+            requestAnimationFrame(() => terminal.focus());
+          }}
+        />
+      )}
       {profileDialog && (
         <SshProfileDialog
           key={profileDialog.id || "new"}
           initial={profileDialog}
           onForgot={setProfiles}
-          canConnect={sessionCount < 12}
+          canConnect={paneCount < 12}
           onClose={closeProfileDialog}
           onSaved={(updated, saved, connect) => {
             setProfiles(updated);

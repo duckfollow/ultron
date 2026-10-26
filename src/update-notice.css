@@ -1,0 +1,103 @@
+.app-updates {
+  padding: 12px 0 0;
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.update-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.update-check-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 0;
+  color: #a4a7b2;
+  font-size: 9px;
+}
+.update-check-button:hover {
+  color: #e1e4ed;
+}
+.update-card {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #45415d;
+  border-radius: 8px;
+  background: #24212f;
+  font-size: 11px;
+}
+.update-card strong {
+  color: #b5a4ef;
+}
+.update-card > div {
+  display: flex;
+  gap: 6px;
+}
+.update-card button {
+  padding: 6px 8px;
+  background: #343042;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.update-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a4a7b2;
+  overflow-wrap: anywhere;
+}
+.update-message .icon-button {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.update-spinning {
+  animation: update-spin 1s linear infinite;
+}
+@keyframes update-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sidebar.collapsed .update-check-row > span,
+.sidebar.collapsed .update-check-label {
+  display: none;
+}
+.sidebar.collapsed .update-check-row {
+  justify-content: center;
+}
+.sidebar.collapsed .update-check-button {
+  width: 36px;
+  height: 36px;
+}
+.sidebar.collapsed .update-card,
+.sidebar.collapsed .update-message {
+  position: fixed;
+  left: 84px;
+  bottom: 24px;
+  z-index: 50;
+  width: 240px;
+  background: #24212f;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 12px 36px #0008;
+}
+.sidebar.collapsed .update-message {
+  bottom: 180px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .update-spinning {
+    animation: none;
+  }
+}

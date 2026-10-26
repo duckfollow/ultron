@@ -1,3 +1,4 @@
+import { prepareSnippet } from "./snippets-model";
 import { Monitor, Server, RotateCw, Pencil, AlertCircle } from "lucide-react";
 import { sshFailure } from "./ssh-status";
 import { useEffect, useRef, useState } from "react";
@@ -15,6 +16,7 @@ export type SessionInfo = {
   target?: string;
 };
 export type TerminalHandle = {
+  insertSnippet: (command: string) => void;
   focus: () => void;
   clear: () => void;
   find: (query: string, previous?: boolean) => void;
@@ -202,6 +204,11 @@ export function TerminalPane({
       } else fail(event.message);
     };
     callbacks.current.register({
+      insertSnippet: (command) => {
+        if (!id || ended || disposed)
+          throw Error("Select a running terminal before inserting.");
+        term.paste(prepareSnippet(command, term.modes.bracketedPasteMode));
+      },
       focus: () => term.focus(),
       clear: () => {
         term.clear();

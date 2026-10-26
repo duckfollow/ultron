@@ -1,14 +1,20 @@
 pub mod credentials;
+mod monitor;
 mod ssh;
 mod terminal;
+mod updates;
 use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(terminal::Sessions::default())
         .manage(ssh::ProfileStore::default())
+        .manage(monitor::LocalMonitor::default())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
+            monitor::local_system_snapshot,
+            updates::check_for_updates,
+            updates::open_release_page,
             terminal::open_terminal,
             terminal::write_terminal,
             terminal::resize_terminal,

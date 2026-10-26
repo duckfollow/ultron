@@ -14,6 +14,9 @@ path = "src/main.rs"
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 [dependencies]
+sysinfo = { version = "0.39.6", default-features = false, features = ["system", "network", "disk"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json"] }
+semver = "1"
 tauri = { version = "2", features = [] }
 portable-pty = "0.9"
 serde = { version = "1", features = ["derive"] }

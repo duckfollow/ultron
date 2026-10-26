@@ -1,5 +1,6 @@
-import { useRef, type CSSProperties } from "react";
-import { X } from "lucide-react";
+import { Utop } from "./Utop";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
+import { X, GripVertical, ArrowLeftRight } from "lucide-react";
 import { TerminalPane, type TerminalHandle } from "./TerminalPane";
 import { layoutRects, type Rect } from "./workspace-model";
 import type { Pane, Tab } from "./workspace-types";
@@ -19,6 +20,7 @@ export function SplitWorkspace({
   focusPane,
   closePane,
   resize,
+  swap,
   editConnection,
   getConnection,
 }: {
@@ -31,8 +33,17 @@ export function SplitWorkspace({
   focusPane: (id: string) => void;
   closePane: (id: string) => void;
   resize: (id: string, ratio: number) => void;
+  swap: (first: string, second: string) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const monitorRoots = useRef(new Map<string, HTMLElement>());
+  useEffect(() => {
+    if (!visible) return;
+    const root = monitorRoots.current.get(tab.activePane);
+    if (root && !root.contains(document.activeElement))
+      root.focus({ preventScroll: true });
+  }, [visible, tab.activePane]);
   const drag = useRef<{
     id: string;
     axis: "columns" | "rows";
@@ -49,15 +60,66 @@ export function SplitWorkspace({
       {tab.panes.map((pane, index) => (
         <section
           key={pane.id}
-          className={`pane-frame ${tab.activePane === pane.id ? "focused" : ""}`}
+          tabIndex={pane.kind === "utop" ? -1 : undefined}
+          ref={(element) => {
+            if (element && pane.kind === "utop")
+              monitorRoots.current.set(pane.id, element);
+            else monitorRoots.current.delete(pane.id);
+          }}
+          className={`pane-frame ${tab.activePane === pane.id ? "focused" : ""} ${dropTarget === pane.id ? "pane-drop-target" : ""}`}
           style={position(panes.get(pane.id)!)}
           aria-label={`Pane ${index + 1}`}
+          onPointerDown={() => focusPane(pane.id)}
+          onFocusCapture={() => focusPane(pane.id)}
+          onDragOver={(event) => {
+            if (
+              event.dataTransfer.types.includes("application/x-ultron-pane")
+            ) {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setDropTarget(pane.id);
+            }
+          }}
+          onDragLeave={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node))
+              setDropTarget(null);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDropTarget(null);
+            try {
+              const source = JSON.parse(
+                event.dataTransfer.getData("application/x-ultron-pane"),
+              );
+              if (
+                source.tab === tab.key &&
+                tab.panes.some((item) => item.id === source.pane)
+              )
+                swap(source.pane, pane.id);
+            } catch {
+              /* Ignore drops from other applications. */
+            }
+          }}
         >
           {tab.panes.length > 1 && (
             <header
               className="pane-heading"
               onPointerDown={() => focusPane(pane.id)}
+              draggable
+              onDragStart={(event) => {
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData(
+                  "application/x-ultron-pane",
+                  JSON.stringify({ tab: tab.key, pane: pane.id }),
+                );
+              }}
+              onDragEnd={() => setDropTarget(null)}
             >
+              <GripVertical
+                size={12}
+                className="pane-drag-grip"
+                aria-hidden="true"
+              />
               <button
                 className="pane-focus"
                 onClick={() => {
@@ -68,9 +130,11 @@ export function SplitWorkspace({
                 <i className={`state-dot ${pane.state}`} />
                 <span>{index + 1}</span>
                 <span>
-                  {pane.sshProfile
-                    ? "SSH"
-                    : (pane.info?.shell.split("/").pop() ?? "shell")}
+                  {pane.kind === "utop"
+                    ? "UTOP · LOCAL"
+                    : pane.sshProfile
+                      ? "SSH"
+                      : (pane.info?.shell.split("/").pop() ?? "shell")}
                 </span>
                 <small>
                   {pane.state === "ended"
@@ -82,6 +146,19 @@ export function SplitWorkspace({
               </button>
               <button
                 className="icon-button"
+                title="Swap with next pane · Or drag the pane header"
+                aria-label={`Swap pane ${index + 1} with next pane`}
+                onClick={() => {
+                  const order = [...panes.keys()];
+                  const next =
+                    order[(order.indexOf(pane.id) + 1) % order.length];
+                  swap(pane.id, next);
+                }}
+              >
+                <ArrowLeftRight size={12} />
+              </button>
+              <button
+                className="icon-button"
                 aria-label={`Close pane ${index + 1}`}
                 onClick={() => closePane(pane.id)}
               >
@@ -90,34 +167,40 @@ export function SplitWorkspace({
             </header>
           )}
           <div className="pane-content">
-            <TerminalPane
-              onRestart={() =>
-                updatePane(pane.id, {
-                  state: "starting",
-                  info: undefined,
-                  error: undefined,
-                  sshProfile: pane.sshProfile
-                    ? (getConnection(pane.sshProfile.id) ?? pane.sshProfile)
-                    : undefined,
-                })
-              }
-              onEdit={
-                pane.sshProfile
-                  ? () => editConnection(pane.sshProfile!)
-                  : undefined
-              }
-              visible={visible}
-              profileId={pane.sshProfile?.id}
-              focused={visible && tab.activePane === pane.id}
-              onFocus={() => focusPane(pane.id)}
-              register={(handle) => register(pane.id, handle)}
-              onReady={(info) => updatePane(pane.id, { info, state: "live" })}
-              onTitle={(title) =>
-                updatePane(pane.id, { title: title || "Shell" })
-              }
-              onExit={(error) => updatePane(pane.id, { state: "ended", error })}
-              onSize={(cols, rows) => updatePane(pane.id, { cols, rows })}
-            />
+            {pane.kind === "utop" ? (
+              <Utop visible={visible} />
+            ) : (
+              <TerminalPane
+                onRestart={() =>
+                  updatePane(pane.id, {
+                    state: "starting",
+                    info: undefined,
+                    error: undefined,
+                    sshProfile: pane.sshProfile
+                      ? (getConnection(pane.sshProfile.id) ?? pane.sshProfile)
+                      : undefined,
+                  })
+                }
+                onEdit={
+                  pane.sshProfile
+                    ? () => editConnection(pane.sshProfile!)
+                    : undefined
+                }
+                visible={visible}
+                profileId={pane.sshProfile?.id}
+                focused={visible && tab.activePane === pane.id}
+                onFocus={() => focusPane(pane.id)}
+                register={(handle) => register(pane.id, handle)}
+                onReady={(info) => updatePane(pane.id, { info, state: "live" })}
+                onTitle={(title) =>
+                  updatePane(pane.id, { title: title || "Shell" })
+                }
+                onExit={(error) =>
+                  updatePane(pane.id, { state: "ended", error })
+                }
+                onSize={(cols, rows) => updatePane(pane.id, { cols, rows })}
+              />
+            )}
           </div>
           {pane.error && (
             <div className="error" role="alert">
