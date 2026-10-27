@@ -26,7 +26,6 @@ import {
   ArrowDown,
   Columns2,
   Rows2,
-  Ellipsis,
   Palette,
   PanelLeftClose,
   PanelLeftOpen,
@@ -421,45 +420,50 @@ function App() {
         </div>
         <nav aria-label="Terminal sessions">
           {tabs.map((tab) => (
-            <button
+            <div
               key={tab.key}
-              className={`session ${active === tab.key ? "selected" : ""}`}
+              className={`workspace-session-row ${active === tab.key ? "selected" : ""}`}
               style={tabStyle(tab)}
-              onClick={() => select(tab.key)}
-              onDoubleClick={() => setAppearance(tab.key)}
-              onContextMenu={(event) => {
-                event.preventDefault();
-                setAppearance(tab.key);
-              }}
-              aria-label={name(tab)}
-              title={`${name(tab)} · Double-click to rename or change color`}
             >
-              {tab.panes.every((pane) => pane.kind === "utop") ? (
-                <Activity size={15} />
-              ) : (
-                <Terminal size={15} />
-              )}
-              <span className="session-index" aria-hidden="true">
-                {tab.number}
-              </span>
-              <div>
-                <span>{name(tab)}</span>
-                <small>
-                  {tab.panes.length > 1
-                    ? `${tab.panes.length} panes · ${tab.panes.every((p) => p.kind === "utop") ? "Local monitors" : tab.panes.some((p) => p.kind === "utop") ? "Utop + terminal" : tab.panes.some((p) => p.sshProfile) ? "SSH" : "local"}`
-                    : tab.panes[0].kind === "utop"
-                      ? "Local system monitor"
-                      : tab.panes[0].state === "starting"
-                        ? "Starting shell…"
-                        : tab.panes[0].state === "ended"
-                          ? "Session ended"
-                          : tab.panes[0].sshProfile
-                            ? profileAddress(tab.panes[0].sshProfile!)
-                            : `${tab.panes[0].info?.shell.split("/").pop()} · local`}
-                </small>
-              </div>
-              <i className="tab-color-dot" />
-            </button>
+              <button
+                className="session"
+                aria-current={active === tab.key ? "true" : undefined}
+                onClick={() => select(tab.key)}
+                onDoubleClick={() => setAppearance(tab.key)}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setAppearance(tab.key);
+                }}
+                aria-label={name(tab)}
+                title={`${name(tab)} · Double-click to rename or change color`}
+              >
+                {tab.panes.every((pane) => pane.kind === "utop") ? (
+                  <Activity size={15} />
+                ) : (
+                  <Terminal size={15} />
+                )}
+                <span className="session-index" aria-hidden="true">
+                  {tab.number}
+                </span>
+                <div>
+                  <span>{name(tab)}</span>
+                  <small>
+                    {tab.panes.length > 1
+                      ? `${tab.panes.length} panes · ${tab.panes.every((p) => p.kind === "utop") ? "Local monitors" : tab.panes.some((p) => p.kind === "utop") ? "Utop + terminal" : tab.panes.some((p) => p.sshProfile) ? "SSH" : "local"}`
+                      : tab.panes[0].kind === "utop"
+                        ? "Local system monitor"
+                        : tab.panes[0].state === "starting"
+                          ? "Starting shell…"
+                          : tab.panes[0].state === "ended"
+                            ? "Session ended"
+                            : tab.panes[0].sshProfile
+                              ? profileAddress(tab.panes[0].sshProfile!)
+                              : `${tab.panes[0].info?.shell.split("/").pop()} · local`}
+                  </small>
+                </div>
+                <i className="tab-color-dot" />
+              </button>
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">
@@ -544,14 +548,6 @@ function App() {
                 {tab.panes.length > 1 && (
                   <small className="pane-count">{tab.panes.length}</small>
                 )}
-              </button>
-              <button
-                className="tab-settings"
-                aria-label={`Edit appearance of ${name(tab)}`}
-                onClick={() => setAppearance(tab.key)}
-                title="Rename / color"
-              >
-                <Ellipsis size={13} />
               </button>
               <button
                 className="tab-close"

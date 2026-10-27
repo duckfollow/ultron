@@ -44,7 +44,11 @@ export function SshConnections({
   useEffect(() => {
     if (!menu) return;
     const outside = (event: PointerEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setMenu(null);
+      if (
+        !menuRef.current?.contains(event.target as Node) &&
+        !trigger.current?.contains(event.target as Node)
+      )
+        setMenu(null);
     };
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -90,7 +94,10 @@ export function SshConnections({
       ) : (
         <div className="ssh-profile-list" onScroll={() => setMenu(null)}>
           {profiles.map((profile) => (
-            <div className="ssh-profile-row" key={profile.id}>
+            <div
+              className={`ssh-profile-row ${menu === profile.id ? "menu-open" : ""}`}
+              key={profile.id}
+            >
               <button
                 className="ssh-profile"
                 disabled={!canConnect}
@@ -107,6 +114,7 @@ export function SshConnections({
               <button
                 className="ssh-profile-more"
                 aria-label={`Manage SSH connection ${profile.name}`}
+                title={`Manage ${profile.name}`}
                 aria-expanded={menu === profile.id}
                 aria-haspopup="menu"
                 onClick={(event) => {

@@ -673,16 +673,6 @@ footer > div {
   padding: 2px 4px;
   border-radius: 3px;
 }
-.tab-settings {
-  width: 22px;
-  height: 24px;
-  flex-shrink: 0;
-  color: #747886;
-  border-radius: 4px;
-}
-.tab-settings:hover {
-  background: #282a32;
-}
 .tab.active {
   border-top-color: var(--tab-color);
 }
@@ -805,6 +795,20 @@ footer > div {
   position: relative;
   display: flex;
   align-items: center;
+  border-radius: 7px;
+  padding-right: 4px;
+  margin-bottom: 3px;
+  transition: background-color 120ms ease;
+}
+.ssh-profile-row:hover,
+.ssh-profile-row:focus-within,
+.ssh-profile-row.menu-open {
+  background: #20262d;
+}
+.ssh-profile-row:hover .ssh-profile-more,
+.ssh-profile-row:focus-within .ssh-profile-more,
+.ssh-profile-row.menu-open .ssh-profile-more {
+  color: #c2cbd7;
 }
 .ssh-profile {
   flex: 1;
@@ -836,12 +840,17 @@ footer > div {
   margin-top: 5px;
 }
 .ssh-profile:hover {
-  background: #20262d;
+  background: transparent;
+}
+.ssh-profile:focus-visible,
+.ssh-profile-more:focus-visible {
+  outline: 2px solid #8ac0aa;
+  outline-offset: -2px;
   border-radius: 5px;
 }
 .ssh-profile-more {
-  width: 22px;
-  height: 24px;
+  width: 28px;
+  height: 30px;
   color: #737c89;
   border-radius: 4px;
   flex-shrink: 0;
@@ -1046,22 +1055,34 @@ aside nav {
   content: "!";
   font-size: 13px;
 }
+.sidebar.collapsed .ssh-profile-row {
+  flex-direction: column;
+  padding: 2px;
+  margin-bottom: 6px;
+  border: 1px solid #2b3039;
+  border-radius: 8px;
+}
 .sidebar.collapsed .ssh-profile {
+  flex: none;
   width: 100%;
-  min-height: 40px;
-  padding: 10px 0;
+  min-height: 30px;
+  padding: 6px 0;
   justify-content: center;
+}
+.sidebar.collapsed .ssh-profile > svg {
+  width: 15px;
+  height: 15px;
 }
 .sidebar.collapsed .ssh-profile > span {
   display: none;
 }
 .sidebar.collapsed .ssh-profile-more {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 16px;
-  height: 16px;
+  position: static;
+  width: 100%;
+  height: 22px;
   padding: 0;
+  border-top: 1px solid #303640;
+  border-radius: 0 0 5px 5px;
 }
 .sidebar.collapsed .ssh-profile-list {
   scrollbar-width: none;
@@ -1292,4 +1313,305 @@ aside nav {
 }
 .ssh-connecting.compact .ssh-dots {
   gap: 5px;
+}
+
+/* Explicit destination selection keeps swaps predictable in any split layout. */
+.pane-heading {
+  gap: 6px;
+}
+.pane-focus {
+  flex: 1;
+}
+.pane-swap-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #343843;
+  border-radius: 5px;
+  color: #aeb5c4;
+  background: #20232b;
+  font-size: 10px;
+  cursor: pointer;
+}
+.pane-swap-button:hover,
+.pane-swap-button.selected {
+  color: #dfede9;
+  background: #283d39;
+  border-color: #6b9b8c;
+}
+.pane-swap-button:focus-visible,
+.pane-swap-target:focus-visible,
+.pane-swap-instruction button:focus-visible {
+  outline: 2px solid #8ac0aa;
+  outline-offset: 2px;
+}
+.pane-swap-overlay {
+  position: absolute;
+  inset: 38px 5px 5px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #101114e8;
+  border: 1px dashed #45554f;
+  border-radius: 6px;
+  overflow: auto;
+}
+.pane-swap-overlay.target {
+  background: #15221fe8;
+}
+.pane-swap-instruction,
+.pane-swap-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  color: #abc4ba;
+}
+.pane-swap-instruction strong,
+.pane-swap-target strong {
+  color: #e0eae6;
+  font-size: 13px;
+  font-weight: 500;
+}
+.pane-swap-instruction > span,
+.pane-swap-target > span {
+  color: #8b9c96;
+  font-size: 11px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pane-swap-target {
+  width: 100%;
+  height: 100%;
+  min-height: 100px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+.pane-swap-target:hover,
+.pane-swap-target:focus-visible {
+  background: #28473c88;
+  outline-offset: -4px;
+}
+.pane-swap-instruction button {
+  margin-top: 6px;
+  padding: 6px 10px;
+  gap: 10px;
+  color: #bac2cd;
+  border: 1px solid #383e49;
+  border-radius: 5px;
+  background: #20232b;
+  font-size: 11px;
+}
+.pane-swap-instruction kbd {
+  color: #79828e;
+  font-size: 10px;
+}
+
+.ssh-fields .remember-password {
+  padding: 16px;
+  border: 1px solid #333a45;
+  border-radius: 10px;
+  background: #191d24;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.keychain-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.keychain-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #263b36;
+  color: #9ecdbb;
+}
+.keychain-heading > div,
+.keychain-progress > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.keychain-heading strong {
+  color: #dce2eb;
+  font-size: 12px;
+  font-weight: 500;
+}
+.keychain-heading span:not(.keychain-icon) {
+  color: #8893a4;
+  font-size: 11px;
+}
+.keychain-explainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px;
+  background: #202830;
+  border: 1px solid #35424c;
+  border-radius: 7px;
+  color: #9cbece;
+}
+.keychain-explainer > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.keychain-explainer strong {
+  color: #c3d6e0;
+  font-size: 11px;
+  font-weight: 500;
+}
+.ssh-fields .keychain-explainer p {
+  color: #a0abba;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+}
+.keychain-explainer b {
+  color: #d1dbe5;
+  font-weight: 500;
+}
+.ssh-fields .keychain-footnote {
+  margin: 0;
+  color: #7e8998;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.keychain-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #354b43;
+  border-radius: 8px;
+  background: #1c2b25;
+  color: #9ecdbb;
+}
+.keychain-progress strong {
+  color: #c6ded3;
+  font-size: 12px;
+  font-weight: 500;
+}
+.keychain-progress span {
+  color: #9eafa7;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.keychain-spinner {
+  flex-shrink: 0;
+  animation: keychain-spin 1.2s linear infinite;
+}
+@keyframes keychain-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keychain-spinner {
+    animation: none;
+  }
+}
+
+.ssh-dialog {
+  width: min(520px, calc(100vw - 48px));
+}
+.ssh-dialog .dialog-actions {
+  position: sticky;
+  bottom: -24px;
+  z-index: 2;
+  margin: 16px -24px -24px;
+  padding: 14px 24px;
+  background: #1a1b22;
+  border-top: 1px solid #303540;
+}
+.ssh-fields .remember-password > label {
+  margin-bottom: 0;
+}
+.ssh-fields .remember-password {
+  gap: 10px;
+  padding: 14px;
+}
+
+.workspace-session-row {
+  display: flex;
+  align-items: center;
+  margin: 3px 0;
+  padding-right: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #9c9faa;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+.workspace-session-row:hover,
+.workspace-session-row:focus-within {
+  background: #20262d;
+}
+.workspace-session-row.selected {
+  border-color: color-mix(in srgb, var(--tab-color) 35%, transparent);
+  background: color-mix(in srgb, var(--tab-color) 10%, #17181d);
+  color: color-mix(in srgb, var(--tab-color) 65%, #fff);
+}
+.workspace-session-row.selected:hover,
+.workspace-session-row.selected:focus-within {
+  border-color: color-mix(in srgb, var(--tab-color) 55%, transparent);
+  background: color-mix(in srgb, var(--tab-color) 15%, #17181d);
+}
+.workspace-session-row .session {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+}
+.workspace-session-row .session > svg {
+  flex-shrink: 0;
+}
+.workspace-session-row .session:focus-visible {
+  outline: 2px solid #8ac0aa;
+  outline-offset: -2px;
+  border-radius: 5px;
+}
+.sidebar.collapsed .workspace-session-row {
+  flex-direction: column;
+  padding: 2px;
+  margin: 0 0 6px;
+  border-color: #2b3039;
+  border-radius: 8px;
+}
+.sidebar.collapsed .workspace-session-row.selected {
+  border-color: color-mix(in srgb, var(--tab-color) 55%, transparent);
+}
+.sidebar.collapsed .workspace-session-row .session {
+  flex: none;
+  width: 100%;
+  min-height: 34px;
+  margin: 0;
+  padding: 8px 4px;
+}
+.sidebar.collapsed .workspace-session-row .session-index {
+  right: 2px;
+  top: 1px;
+}
+.sidebar.collapsed .workspace-session-row .tab-color-dot {
+  right: 2px;
+  bottom: 3px;
 }

@@ -477,7 +477,7 @@ mod tests {
             args.extend(arguments(profile, &dir).unwrap());
             args
         };
-        let connect = |profile: &Profile| {
+        let connect_with_hosts = |profile: &Profile, hosts: &str| {
             let pair = portable_pty::native_pty_system()
                 .openpty(portable_pty::PtySize {
                     rows: 24,
@@ -487,7 +487,7 @@ mod tests {
                 })
                 .unwrap();
             let mut command = portable_pty::CommandBuilder::new("/usr/bin/ssh");
-            command.args(fixture_args(profile, "known_hosts"));
+            command.args(fixture_args(profile, hosts));
             let _askpass = if profile.remember_password {
                 let config = crate::credentials::Askpass::prepare(
                     profile,
@@ -514,6 +514,7 @@ mod tests {
             });
             let mut output = Vec::new();
             let mut bytes = [0; 4096];
+            let mut sent_confirmation = false;
             let mut sent_password = false;
             let mut sent_command = false;
             let mut sent_otp = false;
@@ -523,6 +524,11 @@ mod tests {
                     Ok(n) => {
                         output.extend_from_slice(&bytes[..n]);
                         let text = String::from_utf8_lossy(&output);
+                        if !sent_confirmation && text.contains("(yes/no/[fingerprint])?") {
+                            writer.write_all(b"yes\n").unwrap();
+                            writer.flush().unwrap();
+                            sent_confirmation = true;
+                        }
                         if !sent_password && text.to_ascii_lowercase().contains("password:") {
                             assert_ne!(
                                 profile.auth_method,
@@ -555,6 +561,27 @@ mod tests {
             );
             (status.success(), text)
         };
+        let connect = |profile: &Profile| connect_with_hosts(profile, "known_hosts");
+        let mut first = base.clone();
+        first.auth_method = AuthMethod::Password;
+        first.username = "ultron-password".into();
+        let (ok, text) = connect_with_hosts(&first, "first_hosts");
+        assert!(ok, "{text}");
+        assert!(
+            text.contains("yes\r\n"),
+            "Host confirmation must echo: {text}"
+        );
+        assert!(text.contains("AUTH=password"), "{text}");
+        if std::env::var("ULTRON_TEST_ASKPASS_BIN").is_ok() {
+            first.remember_password = true;
+            let (ok, text) = connect_with_hosts(&first, "first_helper_hosts");
+            assert!(ok, "{text}");
+            assert!(
+                text.contains("yes\r\n"),
+                "Host confirmation must echo: {text}"
+            );
+            assert!(text.contains("AUTH=password"), "{text}");
+        }
         for (mode, user, expected) in [
             (AuthMethod::Auto, "ultron-test", "publickey"),
             (AuthMethod::Key, "ultron-test", "publickey"),

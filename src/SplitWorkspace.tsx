@@ -37,6 +37,32 @@ export function SplitWorkspace({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [swapSource, setSwapSource] = useState<string | null>(null);
+  const swapButtons = useRef(new Map<string, HTMLButtonElement>());
+  const cancelSwap = () => {
+    if (swapSource) swapButtons.current.get(swapSource)?.focus();
+    setSwapSource(null);
+  };
+  useEffect(() => {
+    if (!swapSource) return;
+    if (
+      !visible ||
+      !tab.panes.some((pane) => pane.id === swapSource) ||
+      tab.panes.length < 2
+    ) {
+      setSwapSource(null);
+      return;
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        swapButtons.current.get(swapSource)?.focus();
+        setSwapSource(null);
+      }
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [swapSource, visible, tab.panes]);
   const monitorRoots = useRef(new Map<string, HTMLElement>());
   useEffect(() => {
     if (!visible) return;
@@ -66,7 +92,7 @@ export function SplitWorkspace({
               monitorRoots.current.set(pane.id, element);
             else monitorRoots.current.delete(pane.id);
           }}
-          className={`pane-frame ${tab.activePane === pane.id ? "focused" : ""} ${dropTarget === pane.id ? "pane-drop-target" : ""}`}
+          className={`pane-frame ${tab.activePane === pane.id ? "focused" : ""} ${dropTarget === pane.id ? "pane-drop-target" : ""} ${swapSource === pane.id ? "pane-swap-source" : ""}`}
           style={position(panes.get(pane.id)!)}
           aria-label={`Pane ${index + 1}`}
           onPointerDown={() => focusPane(pane.id)}
@@ -107,6 +133,7 @@ export function SplitWorkspace({
               onPointerDown={() => focusPane(pane.id)}
               draggable
               onDragStart={(event) => {
+                setSwapSource(null);
                 event.dataTransfer.effectAllowed = "move";
                 event.dataTransfer.setData(
                   "application/x-ultron-pane",
@@ -145,17 +172,20 @@ export function SplitWorkspace({
                 </small>
               </button>
               <button
-                className="icon-button"
-                title="Swap with next pane · Or drag the pane header"
-                aria-label={`Swap pane ${index + 1} with next pane`}
-                onClick={() => {
-                  const order = [...panes.keys()];
-                  const next =
-                    order[(order.indexOf(pane.id) + 1) % order.length];
-                  swap(pane.id, next);
+                ref={(element) => {
+                  if (element) swapButtons.current.set(pane.id, element);
+                  else swapButtons.current.delete(pane.id);
                 }}
+                className={`pane-swap-button ${swapSource === pane.id ? "selected" : ""}`}
+                title="Choose a pane to swap positions with · You can also drag this header"
+                aria-label={`Swap pane ${index + 1}`}
+                aria-pressed={swapSource === pane.id}
+                onClick={() =>
+                  setSwapSource(swapSource === pane.id ? null : pane.id)
+                }
               >
-                <ArrowLeftRight size={12} />
+                <ArrowLeftRight size={13} />
+                <span>Swap</span>
               </button>
               <button
                 className="icon-button"
@@ -188,7 +218,7 @@ export function SplitWorkspace({
                 }
                 visible={visible}
                 profileId={pane.sshProfile?.id}
-                focused={visible && tab.activePane === pane.id}
+                focused={visible && !swapSource && tab.activePane === pane.id}
                 onFocus={() => focusPane(pane.id)}
                 register={(handle) => register(pane.id, handle)}
                 onReady={(info) => updatePane(pane.id, { info, state: "live" })}
@@ -202,6 +232,48 @@ export function SplitWorkspace({
               />
             )}
           </div>
+          {swapSource && (
+            <div
+              className={`pane-swap-overlay ${swapSource === pane.id ? "source" : "target"}`}
+            >
+              {swapSource === pane.id ? (
+                <div className="pane-swap-instruction" role="status">
+                  <ArrowLeftRight size={20} />
+                  <strong>Swap pane {index + 1}</strong>
+                  <span>Choose another pane to exchange positions.</span>
+                  <button onClick={cancelSwap}>
+                    Cancel <kbd>Esc</kbd>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="pane-swap-target"
+                  autoFocus={
+                    pane.id ===
+                    tab.panes.find((item) => item.id !== swapSource)?.id
+                  }
+                  onClick={() => {
+                    swap(swapSource, pane.id);
+                    setSwapSource(null);
+                    focusPane(swapSource);
+                    requestAnimationFrame(() =>
+                      swapButtons.current.get(swapSource)?.focus(),
+                    );
+                  }}
+                >
+                  <ArrowLeftRight size={22} />
+                  <strong>Swap with pane {index + 1}</strong>
+                  <span>
+                    {pane.kind === "utop"
+                      ? "Utop · Local monitor"
+                      : pane.title === "Shell"
+                        ? "Terminal"
+                        : pane.title}
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
           {pane.error && (
             <div className="error" role="alert">
               {pane.error}

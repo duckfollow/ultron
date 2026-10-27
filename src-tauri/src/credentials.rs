@@ -36,6 +36,17 @@ pub fn has(profile: &Profile) -> Result<bool, String> {
         Err(_) => Err("Unable to access the saved password in macOS Keychain".into()),
     }
 }
+fn confirmation_prompt(prompt: &str, hint: &str) -> bool {
+    // OpenSSH's host-key question uses RP_ECHO but does not set the confirm hint.
+    // Match its question explicitly so passwords and OTPs stay hidden.
+    hint == "confirm"
+        || prompt
+            .trim_end()
+            .ends_with("Are you sure you want to continue connecting (yes/no/[fingerprint])?")
+        || prompt
+            .trim_end()
+            .ends_with("Are you sure you want to continue connecting (yes/no)?")
+}
 fn prompt_matches(prompt: &str, expected: &str, hint: &str) -> bool {
     hint != "confirm" && prompt.trim() == expected && !expected.is_empty()
 }
@@ -213,7 +224,7 @@ pub fn run_askpass() -> i32 {
         }
     }
     // OTP / passphrase / host confirmation are never looked up or saved.
-    match read_tty(&prompt, hint == "confirm") {
+    match read_tty(&prompt, confirmation_prompt(&prompt, &hint)) {
         Ok(answer) => {
             if writeln!(std::io::stdout(), "{answer}").is_ok() {
                 0

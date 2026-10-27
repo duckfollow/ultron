@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { FolderOpen, Server, X } from "lucide-react";
+import {
+  FolderOpen,
+  Server,
+  X,
+  LockKeyhole,
+  ShieldCheck,
+  LoaderCircle,
+} from "lucide-react";
 import type { SshProfile, SshAuthMethod } from "./ssh-model";
 export function SshProfileDialog({
   initial,
@@ -244,6 +251,15 @@ export function SshProfileDialog({
           )}
           {draft.authMethod !== "key" && (
             <div className="remember-password">
+              <div className="keychain-heading">
+                <span className="keychain-icon">
+                  <LockKeyhole size={18} />
+                </span>
+                <div>
+                  <strong>Password storage</strong>
+                  <span>Protected by macOS Keychain</span>
+                </div>
+              </div>
               <label className="remember-toggle">
                 <input
                   type="checkbox"
@@ -257,18 +273,18 @@ export function SshProfileDialog({
               </label>
               {draft.rememberPassword && (
                 <label>
-                  Login password
+                  SSH password
                   <input
                     type="password"
                     autoComplete="off"
-                    aria-label="Login password to remember"
+                    aria-label="SSH password to remember"
                     value={password}
                     required={!storedAvailable}
                     maxLength={8192}
                     placeholder={
                       storedAvailable
                         ? "Leave blank to keep saved password"
-                        : "Enter login password"
+                        : "Enter this server’s SSH password"
                     }
                     onChange={(event) => setPassword(event.target.value)}
                   />
@@ -284,21 +300,55 @@ export function SshProfileDialog({
                   Forget password
                 </button>
               )}
-              <p>
-                Stored only in macOS Keychain. OTP / 2FA codes are always
-                entered in the terminal.
+              {draft.rememberPassword ? (
+                <div className="keychain-explainer">
+                  <ShieldCheck size={16} aria-hidden="true" />
+                  <div>
+                    <strong>macOS may ask for permission</strong>
+                    <p>
+                      If a Keychain window appears, enter your{" "}
+                      <b>Mac login password</b>. This unlocks access to your
+                      saved SSH password.
+                    </p>
+                    <p>
+                      <b>Allow</b> grants access this time. <b>Always Allow</b>{" "}
+                      remembers access for this app.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p>
+                  Enter your SSH password in the terminal each time you connect.
+                </p>
+              )}
+              <p className="keychain-footnote">
+                SSH passwords stay in Keychain. OTP / 2FA codes are never saved.
               </p>
             </div>
           )}
         </fieldset>
         <p className="ssh-hint">
-          {draft.authMethod === "password"
-            ? "Your password is requested in the terminal. The server must allow password sign-in."
-            : draft.authMethod === "key"
-              ? "Choose a private key. Its passphrase, if needed, is requested in the terminal and is not saved."
-              : "Tries SSH keys first, then asks for a password if the server allows it."}{" "}
+          {draft.rememberPassword && draft.authMethod !== "key"
+            ? "Uses your saved SSH password when requested. macOS controls Keychain access."
+            : draft.authMethod === "password"
+              ? "Your password is requested in the terminal. The server must allow password sign-in."
+              : draft.authMethod === "key"
+                ? "Choose a private key. Its passphrase, if needed, is requested in the terminal and is not saved."
+                : "Tries SSH keys first, then asks for a password if the server allows it."}{" "}
           New host verification appears in the terminal.
         </p>
+        {busy && draft.rememberPassword && (
+          <div className="keychain-progress" role="status" aria-live="polite">
+            <LoaderCircle size={17} className="keychain-spinner" />
+            <div>
+              <strong>Waiting for macOS Keychain…</strong>
+              <span>
+                If macOS asks, use your Mac login password in its permission
+                window.
+              </span>
+            </div>
+          </div>
+        )}
         {error && (
           <p className="form-error" role="alert">
             {error}
