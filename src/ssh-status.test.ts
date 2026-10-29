@@ -59,3 +59,47 @@ test("banner exchange timeouts retain their OpenSSH diagnostic", () => {
   assert.equal(failure.title, "Connection timed out");
   assert.match(failure.details, /banner exchange/);
 });
+
+test("SSH groups preserve connections, handle legacy profiles, and keep Ungrouped separate", async () => {
+  const { groupSshProfiles, newSshProfile } = await import("./ssh-model.ts");
+  const profiles = [
+    { ...newSshProfile(), id: "one", name: "API", group: " Production " },
+    { ...newSshProfile(), id: "two", name: "Local", group: undefined },
+    { ...newSshProfile(), id: "three", name: "Worker", group: "Production" },
+    { ...newSshProfile(), id: "four", name: "Dev", group: "Development" },
+    { ...newSshProfile(), id: "five", name: "Named group", group: "Ungrouped" },
+  ];
+  const groups = groupSshProfiles(profiles);
+  assert.deepEqual(
+    groups.map((group) => group.name),
+    ["Development", "Production", "Ungrouped", ""],
+  );
+  assert.deepEqual(
+    groups[1].profiles.map((profile) => profile.id),
+    ["one", "three"],
+  );
+  assert.equal(groups[3].profiles[0].id, "two");
+  assert.equal(profiles[0].group, " Production ");
+  assert.deepEqual(groupSshProfiles([]), []);
+});
+
+test("custom SSH group order persists independently of connection order and new groups", async () => {
+  const { groupSshProfiles, newSshProfile } = await import("./ssh-model.ts");
+  const a = { ...newSshProfile(), id: "a", group: "Development" };
+  const b = { ...newSshProfile(), id: "b", group: "Production" };
+  const c = { ...newSshProfile(), id: "c", group: "Production" };
+  const d = { ...newSshProfile(), id: "d", group: "New group" };
+  const saved = JSON.parse(JSON.stringify(["Production", "Development"]));
+  const groups = groupSshProfiles([c, a, b, d], saved);
+  assert.deepEqual(
+    groups.map((g) => g.name),
+    ["Production", "Development", "New group"],
+  );
+  assert.deepEqual(groups[0].profiles, [c, b]);
+  assert.deepEqual(
+    groupSshProfiles([a, b], ["Deleted group", "Production"]).map(
+      (g) => g.name,
+    ),
+    ["Production", "Development"],
+  );
+});

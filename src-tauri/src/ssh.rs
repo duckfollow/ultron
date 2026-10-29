@@ -22,6 +22,8 @@ pub enum AuthMethod {
 pub struct Profile {
     pub id: String,
     pub name: String,
+    #[serde(default)]
+    pub group: String,
     pub host: String,
     pub port: u16,
     pub username: String,
@@ -42,6 +44,11 @@ impl Profile {
             || self.name.chars().any(char::is_control)
         {
             return Err("Enter a connection name (up to 80 characters)".into());
+        }
+        if self.group.chars().count() > 60 || self.group.chars().any(char::is_control) {
+            return Err(
+                "Enter a group name up to 60 characters, without control characters".into(),
+            );
         }
         if self.host.is_empty()
             || self.host.len() > 253
@@ -210,6 +217,7 @@ fn write(path: &Path, profiles: &[Profile]) -> Result<(), String> {
 #[cfg(test)]
 fn save(path: &Path, mut profile: Profile) -> Result<Vec<Profile>, String> {
     profile.name = profile.name.trim().into();
+    profile.group = profile.group.trim().into();
     profile.validate()?;
     let mut profiles = read(path)?;
     if profile.id.is_empty() {
@@ -236,6 +244,90 @@ pub fn list_ssh_profiles(
     let _guard = store.0.lock().unwrap();
     read(&path(&app)?)
 }
+fn reorder_profile(
+    path: &Path,
+    id: &str,
+    target_id: &str,
+    after: bool,
+) -> Result<Vec<Profile>, String> {
+    let mut profiles = read(path)?;
+    let from = profiles
+        .iter()
+        .position(|p| p.id == id)
+        .ok_or("Connection no longer exists.")?;
+    let target = profiles
+        .iter()
+        .find(|p| p.id == target_id)
+        .ok_or("Target connection no longer exists.")?;
+    if profiles[from].group.trim() != target.group.trim() {
+        return Err("Drop on a group header to move between groups.".into());
+    }
+    if id == target_id {
+        return Ok(profiles);
+    }
+    let moved = profiles.remove(from);
+    let target = profiles.iter().position(|p| p.id == target_id).unwrap();
+    profiles.insert(target + usize::from(after), moved);
+    write(path, &profiles)?;
+    Ok(profiles)
+}
+#[tauri::command]
+pub async fn reorder_ssh_profile(
+    app: AppHandle,
+    store: State<'_, ProfileStore>,
+    id: String,
+    target_id: String,
+    after: bool,
+) -> Result<Vec<Profile>, String> {
+    let lock = store.0.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = lock
+            .lock()
+            .map_err(|_| "Connection storage is unavailable.")?;
+        reorder_profile(&path(&app)?, &id, &target_id, after)
+    })
+    .await
+    .map_err(|_| "Could not reorder connections.".to_string())?
+}
+fn move_group(
+    path: &Path,
+    id: &str,
+    group: &str,
+    expected_group: &str,
+) -> Result<Vec<Profile>, String> {
+    let mut profiles = read(path)?;
+    let profile = profiles
+        .iter_mut()
+        .find(|p| p.id == id)
+        .ok_or("Connection no longer exists. Reload before moving.")?;
+    if profile.group.trim() != expected_group.trim() {
+        return Err(
+            "The connection’s group has changed. Please try again with its current group.".into(),
+        );
+    }
+    profile.group = group.trim().into();
+    profile.validate()?;
+    write(path, &profiles)?;
+    Ok(profiles)
+}
+#[tauri::command]
+pub async fn move_ssh_profile_group(
+    app: AppHandle,
+    store: State<'_, ProfileStore>,
+    id: String,
+    group: String,
+    expected_group: String,
+) -> Result<Vec<Profile>, String> {
+    let lock = store.0.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = lock
+            .lock()
+            .map_err(|_| "Connection storage is unavailable.")?;
+        move_group(&path(&app)?, &id, &group, &expected_group)
+    })
+    .await
+    .map_err(|_| "Could not finish moving the connection.".to_string())?
+}
 #[tauri::command]
 pub async fn save_ssh_profile(
     app: AppHandle,
@@ -250,6 +342,7 @@ pub async fn save_ssh_profile(
         let old = read(&path)?.into_iter().find(|p| p.id == profile.id);
         let mut profile = profile;
         profile.name = profile.name.trim().into();
+        profile.group = profile.group.trim().into();
         profile.validate()?;
         if !profile.id.is_empty() && old.is_none() {
             return Err("Connection no longer exists. Reload before saving.".into());
@@ -352,6 +445,7 @@ mod tests {
         Profile {
             id: String::new(),
             name: "Development".into(),
+            group: String::new(),
             host: "127.0.0.1".into(),
             port: 2222,
             username: "tester".into(),
@@ -369,9 +463,11 @@ mod tests {
         assert_eq!(saved.len(), 1);
         let mut edited = saved[0].clone();
         edited.name = "Renamed".into();
+        edited.group = "  Production  ".into();
         edited.auth_method = AuthMethod::Password;
         let updated = save(&path, edited).unwrap();
         assert_eq!(updated[0].name, "Renamed");
+        assert_eq!(read(&path).unwrap()[0].group, "Production");
         assert_eq!(read(&path).unwrap()[0].auth_method, AuthMethod::Password);
         assert_eq!(updated[0].id, saved[0].id);
         #[cfg(unix)]
@@ -392,11 +488,68 @@ mod tests {
         fs::remove_dir_all(dir).unwrap();
     }
     #[test]
+    fn reorder_is_persistent_and_preserves_all_profile_fields() {
+        let dir = std::env::temp_dir().join(format!("ultron-order-{}", uuid::Uuid::new_v4()));
+        let path = dir.join("ssh-profiles.json");
+        let mut records = vec![profile(), profile(), profile()];
+        for (index, record) in records.iter_mut().enumerate() {
+            record.id = uuid::Uuid::new_v4().to_string();
+            record.name = format!("Server {index}");
+            record.remember_password = true;
+        }
+        records[2].group = "Production".into();
+        write(&path, &records).unwrap();
+        let before = serde_json::to_value(&records).unwrap();
+        let reordered = reorder_profile(&path, &records[1].id, &records[0].id, false).unwrap();
+        assert_eq!(reordered[0].id, records[1].id);
+        assert_eq!(read(&path).unwrap()[0].id, records[1].id);
+        assert_eq!(serde_json::to_value(&reordered[0]).unwrap(), before[1]);
+        assert!(reorder_profile(&path, &records[0].id, &records[2].id, true).is_err());
+        assert!(reorder_profile(&path, "missing", &records[0].id, false).is_err());
+        let restored = reorder_profile(&path, &records[1].id, &records[0].id, true).unwrap();
+        assert_eq!(serde_json::to_value(restored).unwrap(), before);
+        fs::remove_dir_all(dir).unwrap();
+    }
+    #[test]
+    fn moving_groups_preserves_credentials_and_supports_safe_undo() {
+        let dir = std::env::temp_dir().join(format!("ultron-move-{}", uuid::Uuid::new_v4()));
+        let path = dir.join("ssh-profiles.json");
+        let mut profiles = save(&path, profile()).unwrap();
+        profiles[0].remember_password = true;
+        write(&path, &profiles).unwrap();
+        let id = profiles[0].id.clone();
+        let before = serde_json::to_value(&profiles[0]).unwrap();
+        let moved = move_group(&path, &id, " Production ", "").unwrap();
+        let mut expected = before.clone();
+        expected["group"] = serde_json::json!("Production");
+        assert_eq!(serde_json::to_value(&moved[0]).unwrap(), expected);
+        assert!(move_group(&path, &id, "Wrong", "").is_err());
+        assert!(move_group(&path, &id, &"x".repeat(61), "Production").is_err());
+        assert_eq!(read(&path).unwrap()[0].group, "Production");
+        let undone = move_group(&path, &id, "", "Production").unwrap();
+        assert_eq!(serde_json::to_value(&undone[0]).unwrap(), before);
+        assert!(move_group(&path, "missing", "Production", "").is_err());
+        fs::remove_dir_all(dir).unwrap();
+    }
+    #[test]
+    fn group_names_are_bounded_and_do_not_affect_ssh_arguments() {
+        let mut grouped = profile();
+        let original = arguments(&grouped, Path::new("/")).unwrap();
+        grouped.group = "Production ลูกค้า".into();
+        assert_eq!(arguments(&grouped, Path::new("/")).unwrap(), original);
+        for invalid in ["x".repeat(61), "Production\nother".into()] {
+            grouped.group = invalid;
+            assert!(grouped.validate().is_err());
+        }
+    }
+    #[test]
     fn authentication_modes_are_saved_and_legacy_profiles_default_to_auto() {
         let mut legacy = serde_json::to_value(profile()).unwrap();
         legacy.as_object_mut().unwrap().remove("authMethod");
+        legacy.as_object_mut().unwrap().remove("group");
         let parsed: Profile = serde_json::from_value(legacy).unwrap();
         assert_eq!(parsed.auth_method, AuthMethod::Auto);
+        assert!(parsed.group.is_empty());
         let mut password = profile();
         password.auth_method = AuthMethod::Password;
         password.identity_file = "/missing/ignored-key".into();

@@ -15,6 +15,7 @@ pub fn run() {
             monitor::local_system_snapshot,
             updates::check_for_updates,
             updates::open_release_page,
+            updates::open_companion_app,
             terminal::open_terminal,
             terminal::write_terminal,
             terminal::resize_terminal,
@@ -22,6 +23,8 @@ pub fn run() {
             terminal::close_terminal,
             ssh::list_ssh_profiles,
             ssh::save_ssh_profile,
+            ssh::move_ssh_profile_group,
+            ssh::reorder_ssh_profile,
             ssh::delete_ssh_profile,
             ssh::forget_ssh_password
         ])

@@ -12,12 +12,14 @@ import {
 import type { SshProfile, SshAuthMethod } from "./ssh-model";
 export function SshProfileDialog({
   initial,
+  groups,
   onClose,
   onSaved,
   canConnect,
   onForgot,
 }: {
   initial: SshProfile;
+  groups: string[];
   canConnect: boolean;
   onForgot: (profiles: SshProfile[]) => void;
   onClose: () => void;
@@ -31,6 +33,7 @@ export function SshProfileDialog({
     nameInput = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState({
       ...initial,
+      group: initial.group ?? "",
       authMethod: initial.authMethod ?? "auto",
       rememberPassword: initial.rememberPassword ?? false,
     }),
@@ -87,6 +90,7 @@ export function SshProfileDialog({
       const profile = {
         ...draft,
         name: draft.name.trim(),
+        group: draft.group?.trim() ?? "",
         host: draft.host.trim(),
         username: draft.username.trim(),
         identityFile: draft.identityFile.trim(),
@@ -149,6 +153,25 @@ export function SshProfileDialog({
               placeholder="Development server"
               onChange={(event) => patch({ name: event.target.value })}
             />
+          </label>
+          <label>
+            Group <span className="optional">Optional</span>
+            <input
+              list="ssh-group-options"
+              maxLength={60}
+              value={draft.group}
+              placeholder="e.g. Production, Development, My project"
+              onChange={(event) => patch({ group: event.target.value })}
+            />
+            <datalist id="ssh-group-options">
+              {groups.map((group) => (
+                <option key={group} value={group} />
+              ))}
+            </datalist>
+            <small className="ssh-group-hint">
+              Choose an existing group or type a new one. Leave blank for
+              Ungrouped.
+            </small>
           </label>
           <div className="ssh-field-row">
             <label>

@@ -85,9 +85,13 @@ Scrollback is limited to 10,000 lines. Output is streamed as bytes to preserve U
 
 Find, clear scrollback and font controls affect the focused pane. Names, colors and layouts are session-only, like the terminals themselves. Closing a pane does not close neighboring panes.
 
+Drag terminal tabs horizontally, or their workspace rows vertically, to reorder them without restarting sessions. Both views share the same order; the active tab stays selected. Option+Shift+Arrow keys also reorder focused tabs or workspace rows. Tab order lasts for the current app session.
+
 ## Saved SSH connections
 
 Use **Connections → +** to save a server. **Save** works offline; **Save & connect** opens a new tab. Click a connection to open another SSH session, or use **…** to connect in a split pane, edit, or delete its saved profile. Deleting a profile leaves existing sessions running.
+
+**Groups:** Set the optional Group field when adding or editing a connection. Choose an existing name or type a new one; leave it blank for Ungrouped. The sidebar initially shows alphabetized groups with connection counts, and remembers which groups you collapse. Drag the grip beside a group to reorder groups. Drag a server above or below another server in the same group to reorder it; insertion lines show the destination. Group and server order survive app restarts. Option+Shift+Up/Down on a group grip or connection provides keyboard reordering. Drag a connection onto a group to move it, including collapsed groups; the destination highlights and expands after a successful move. An Ungrouped drop target appears while dragging. Use **Move to group…** in the connection menu for a keyboard-accessible alternative or to create a new group. A confirmation offers **Undo**, which changes only the group and preserves credentials. A collapsed sidebar keeps all connections accessible as icons. Moving a connection to a different group leaves running sessions and saved authentication unchanged. Existing connections appear in Ungrouped.
 
 Profiles are stored atomically at `~/Library/Application Support/com.duckfollow.ultron/ssh-profiles.json` with owner-only file permissions. The app saves connection metadata and the identity-file path; it never copies private keys or stores passwords in the profile file. **Authentication** is saved per profile:
 
@@ -111,15 +115,17 @@ SCP/SFTP file-transfer controls are not part of this milestone. Sessions remain 
 
 ## Update checks
 
-The sidebar shows the installed version and **Check for updates**. Ultron checks the public `duckfollow/ultron` GitHub Releases feed automatically at most once per day, and allows manual checks at any time. When a newer release is available, **Download** opens its GitHub Release page in the default browser; **Later** dismisses the notice. Updates are installed manually. The control remains accessible when the sidebar is collapsed.
+Open **Updates** at the bottom of the sidebar to view the installed version, update status, official release source, installation guidance, and release notes when a newer version is available. A **New** badge appears on the sidebar button when an update is available. Opening and closing the Updates dialog leaves terminal sessions running. Ultron checks the public `duckfollow/ultron` GitHub Releases feed automatically at most once per day, and allows manual checks at any time. When a newer release is available, **Download macOS update** opens its GitHub Release page in the default browser. **View current release** opens the installed version’s release page when no update is available. The dialog records the time of the last successful check for this app session. Updates are installed manually. The control remains accessible when the sidebar is collapsed.
 
 Preview builds receive newer preview and stable releases; stable builds receive stable releases only. The newest semantic version among the most recent 100 releases is selected, ignoring drafts, invalid version tags, and build-metadata-only changes. Automatic check failures stay quiet; manual checks show an error and can be retried. Checks send the app version in the User-Agent and do not include terminal content, commands, or SSH profile information.
 
 To publish an update, keep the versions in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, and `src-tauri/tauri.conf.json` in sync, then publish a GitHub Release with a semantic version tag (for example `v0.1.0-alpha.2`) and its installer. Mark preview versions as prereleases. No GitHub token or separate update server is required for public releases.
 
+The Updates dialog also includes **More from duckfollow**, with links to EDITH, Dum-E, and u. These open the official project pages in your browser.
+
 ## Command snippets
 
-Open **Command snippets** in the sidebar to create named commands, search by name or content, edit, copy, and delete them. Snippets persist in local WebView storage on this device across app launches. The dialog shows the destination terminal/pane before inserting.
+Open **Command snippets** in the sidebar to create named commands, search by name or content, edit, copy, and delete them. The library shows names and command previews, a count, and search results. The first saved command opens automatically. Saved/unsaved indicators track edits, ⌘S saves the current command, and switching commands, creating a new command, or closing the dialog offers Save & continue, Discard changes, or Keep editing when needed. Snippets persist in local WebView storage on this device across app launches. The dialog shows the destination terminal/pane before inserting.
 
 **Insert** pastes at the active terminal cursor without sending Enter or clearing existing input. Review the current prompt first. Trailing line endings are removed. Multiline commands require the terminal application to have bracketed paste enabled; otherwise use Copy or a single line. Control sequences are rejected on insertion. Commands can be reviewed or edited in the snippet dialog before insertion, and still require Enter in the terminal to run.
 

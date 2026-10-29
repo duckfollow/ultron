@@ -112,16 +112,10 @@ export function layoutRects(
   walk(layout, rect);
   return { panes, dividers };
 }
-export function tabName(
-  number: number,
-  shellTitle: string,
-  customName?: string,
-) {
+export function tabName(shellTitle: string, customName?: string) {
   return (
     customName?.trim() ||
-    (shellTitle && shellTitle !== "Shell"
-      ? `${String(number).padStart(2, "0")} · ${shellTitle}`
-      : `Terminal ${String(number).padStart(2, "0")}`)
+    (shellTitle && shellTitle !== "Shell" ? shellTitle : "Terminal")
   );
 }
 

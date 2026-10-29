@@ -70,10 +70,10 @@ test("resizing stays bounded, affects only the chosen divider, and ignores inval
   assert.deepEqual(resizeSplit(layout, "s2", NaN), layout);
 });
 test("custom tab names survive shell title changes and blank names restore automatic naming", () => {
-  assert.equal(tabName(1, "server running", " Backend "), "Backend");
-  assert.equal(tabName(1, "new directory", "Backend"), "Backend");
-  assert.equal(tabName(2, "Shell", "  "), "Terminal 02");
-  assert.equal(tabName(2, "project"), "02 · project");
+  assert.equal(tabName("server running", " Backend "), "Backend");
+  assert.equal(tabName("new directory", "Backend"), "Backend");
+  assert.equal(tabName("Shell", "  "), "Terminal");
+  assert.equal(tabName("project"), "project");
 });
 
 test("swapping monitor and terminal positions keeps pane IDs, split ratios, and sessions stable", () => {
@@ -91,4 +91,33 @@ test("swapping monitor and terminal positions keeps pane IDs, split ratios, and 
   assert.deepEqual(removePane(swapped, "utop"), start);
   assert.equal(swapPanePositions(mixed, "original", "missing"), mixed);
   assert.equal(swapPanePositions(mixed, "utop", "utop"), mixed);
+});
+
+test("reordering tabs preserves session objects, layouts, and the original array", async () => {
+  const { reorderRelative } = await import("./order-model.ts");
+  const a = { id: "a", layout: start },
+    b = { id: "b", layout: { type: "pane" as const, id: "other" } },
+    c = { id: "c", layout: start };
+  const original = [a, b, c];
+  const moved = reorderRelative(original, "a", "c", true, (item) => item.id);
+  assert.deepEqual(moved, [b, c, a]);
+  assert.equal(moved[2], a);
+  assert.equal(moved[2].layout, start);
+  assert.deepEqual(original, [a, b, c]);
+  assert.deepEqual(
+    reorderRelative(moved, "a", "b", false, (item) => item.id),
+    original,
+  );
+  assert.equal(
+    reorderRelative(original, "missing", "a", true, (item) => item.id),
+    original,
+  );
+  assert.equal(
+    reorderRelative(original, "a", "a", false, (item) => item.id),
+    original,
+  );
+  assert.equal(
+    reorderRelative(original, "a", "b", false, (item) => item.id),
+    original,
+  );
 });

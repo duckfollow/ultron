@@ -1,3 +1,5 @@
+import { reorderRelative } from "./order-model";
+import { useOrderDrag } from "./useOrderDrag";
 import { UtopMenu } from "./UtopMenu";
 import { CommandSnippets } from "./CommandSnippets";
 import { UpdateNotice } from "./UpdateNotice";
@@ -59,6 +61,20 @@ function App() {
   const [snippetsOpen, setSnippetsOpen] = useState(false);
   const [tabs, setTabs] = useState<Tab[]>([firstTab]),
     [active, setActive] = useState(firstTab.key);
+  const reorderTabs = (source: string, target: string, after: boolean) =>
+    setTabs((current) =>
+      reorderRelative(current, source, target, after, (tab) => tab.key),
+    );
+  const tabOrder = useOrderDrag(
+    "terminal-tab",
+    tabs.map((tab) => tab.key),
+    reorderTabs,
+  );
+  const sessionOrder = useOrderDrag(
+    "terminal-session",
+    tabs.map((tab) => tab.key),
+    reorderTabs,
+  );
   const [find, setFind] = useState(false),
     [query, setQuery] = useState(""),
     [help, setHelp] = useState(false),
@@ -106,7 +122,6 @@ function App() {
     tab.panes.every((pane) => pane.kind === "utop") && !tab.customName
       ? "Utop"
       : tabName(
-          tab.number,
           tab.panes.find((p) => p.id === tab.activePane && p.kind !== "utop")
             ?.title ??
             tab.panes.find((p) => p.kind !== "utop")?.title ??
@@ -407,6 +422,21 @@ function App() {
           onEdit={setProfileDialog}
           onConnect={connectSsh}
           canSplit={canSplit}
+          onReorder={async (id, targetId, after) => {
+            const updated = await invoke<SshProfile[]>("reorder_ssh_profile", {
+              id,
+              targetId,
+              after,
+            });
+            setProfiles(updated);
+          }}
+          onMove={async (id, group, expectedGroup) => {
+            const updated = await invoke<SshProfile[]>(
+              "move_ssh_profile_group",
+              { id, group, expectedGroup },
+            );
+            setProfiles(updated);
+          }}
           onDelete={async (profile) => {
             const updated = await invoke<SshProfile[]>("delete_ssh_profile", {
               id: profile.id,
@@ -422,13 +452,20 @@ function App() {
           {tabs.map((tab) => (
             <div
               key={tab.key}
-              className={`workspace-session-row ${active === tab.key ? "selected" : ""}`}
+              className={`workspace-session-row ${active === tab.key ? "selected" : ""}${sessionOrder.className(tab.key)}`}
+              {...sessionOrder.props(tab.key)}
               style={tabStyle(tab)}
             >
               <button
                 className="session"
                 aria-current={active === tab.key ? "true" : undefined}
-                onClick={() => select(tab.key)}
+                onClick={() => {
+                  if (
+                    !tabOrder.suppress.current &&
+                    !sessionOrder.suppress.current
+                  )
+                    select(tab.key);
+                }}
                 onDoubleClick={() => setAppearance(tab.key)}
                 onContextMenu={(event) => {
                   event.preventDefault();
@@ -442,9 +479,6 @@ function App() {
                 ) : (
                   <Terminal size={15} />
                 )}
-                <span className="session-index" aria-hidden="true">
-                  {tab.number}
-                </span>
                 <div>
                   <span>{name(tab)}</span>
                   <small>
@@ -467,28 +501,29 @@ function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="local-label">
-            <span /> LOCAL WORKSPACE
+          <div
+            className="sidebar-tools"
+            role="group"
+            aria-label="Workspace tools"
+          >
+            <button
+              className="snippets-button"
+              title="Command snippets"
+              aria-label="Command snippets"
+              onClick={() => setSnippetsOpen(true)}
+            >
+              <BookOpen size={15} />
+              <span className="sidebar-tool-label">Snippets</span>
+            </button>
+            <button
+              className="sidebar-help-button"
+              onClick={() => setHelp(true)}
+              aria-label="Keyboard shortcuts"
+              title="Keyboard shortcuts"
+            >
+              <CircleHelp size={15} />
+            </button>
           </div>
-          <p>Your shell. Your machine.</p>
-          <button
-            onClick={() => setHelp(true)}
-            aria-label="Keyboard shortcuts"
-            title="Keyboard shortcuts"
-          >
-            <CircleHelp size={14} />
-            <span className="shortcut-label">Keyboard shortcuts</span>
-            <kbd>?</kbd>
-          </button>
-          <button
-            className="snippets-button"
-            title="Command snippets"
-            aria-label="Command snippets"
-            onClick={() => setSnippetsOpen(true)}
-          >
-            <BookOpen size={14} />
-            <span className="shortcut-label">Command snippets</span>
-          </button>
           <UpdateNotice />
         </div>
       </aside>
@@ -524,7 +559,8 @@ function App() {
         <div className="tabbar" role="tablist" aria-label="Open terminals">
           {tabs.map((tab) => (
             <div
-              className={`tab ${active === tab.key ? "active" : ""}`}
+              className={`tab ${active === tab.key ? "active" : ""}${tabOrder.className(tab.key)}`}
+              {...tabOrder.props(tab.key, true)}
               key={tab.key}
               style={tabStyle(tab)}
               onContextMenu={(event) => {
@@ -535,7 +571,13 @@ function App() {
               <button
                 role="tab"
                 aria-selected={active === tab.key}
-                onClick={() => select(tab.key)}
+                onClick={() => {
+                  if (
+                    !tabOrder.suppress.current &&
+                    !sessionOrder.suppress.current
+                  )
+                    select(tab.key);
+                }}
                 onDoubleClick={() => setAppearance(tab.key)}
                 title={name(tab)}
               >
@@ -551,7 +593,7 @@ function App() {
               </button>
               <button
                 className="tab-close"
-                aria-label={`Close tab ${tab.number}`}
+                aria-label={`Close tab ${name(tab)}`}
                 onClick={() => closeTab(tab.key)}
               >
                 <X size={12} />
@@ -791,6 +833,13 @@ function App() {
         <SshProfileDialog
           key={profileDialog.id || "new"}
           initial={profileDialog}
+          groups={[
+            ...new Set(
+              profiles
+                .map((profile) => profile.group?.trim())
+                .filter((group): group is string => !!group),
+            ),
+          ].sort()}
           onForgot={setProfiles}
           canConnect={paneCount < 12}
           onClose={closeProfileDialog}
