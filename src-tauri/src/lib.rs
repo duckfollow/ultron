@@ -24,6 +24,7 @@ pub fn run() {
             ssh::list_ssh_profiles,
             ssh::save_ssh_profile,
             ssh::move_ssh_profile_group,
+            ssh::rename_ssh_group,
             ssh::reorder_ssh_profile,
             ssh::delete_ssh_profile,
             ssh::forget_ssh_password

@@ -15,7 +15,7 @@ Downloads are ad-hoc signed and **not notarized by Apple**. macOS Gatekeeper may
 A `SHA256SUMS.txt` file accompanies each release. Compare it with the result of:
 
 ```sh
-shasum -a 256 Ultron_0.1.0-alpha.4_aarch64.dmg
+shasum -a 256 Ultron_0.1.0-alpha.5_aarch64.dmg
 ```
 
 ## License
@@ -35,7 +35,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and validation. When reporting 
 - Double-click a tab (or use its … button) to set a name and color. Custom names remain fixed when the shell title changes; a blank name restores automatic titles.
 - ANSI colors, Unicode, interactive programs, Ctrl+C, terminal resizing.
 - Find output, clear scrollback, font size controls and keyboard shortcuts.
-- Collapsible sidebar with a compact 64px icon rail. Toggle with the sidebar button or ⌘ B; the preference survives restarts without restarting terminal sessions.
+- Collapsible sidebar with a compact 64px icon rail. Click the Ultron logo/name or press ⌘ B; the preference survives restarts without restarting terminal sessions.
 - Dark interface with a custom red identity. No AI service, telemetry or cloud account.
 
 ## Develop
@@ -91,7 +91,9 @@ Drag terminal tabs horizontally, or their workspace rows vertically, to reorder 
 
 Use **Connections → +** to save a server. **Save** works offline; **Save & connect** opens a new tab. Click a connection to open another SSH session, or use **…** to connect in a split pane, edit, or delete its saved profile. Deleting a profile leaves existing sessions running.
 
-**Groups:** Set the optional Group field when adding or editing a connection. Choose an existing name or type a new one; leave it blank for Ungrouped. The sidebar initially shows alphabetized groups with connection counts, and remembers which groups you collapse. Drag the grip beside a group to reorder groups. Drag a server above or below another server in the same group to reorder it; insertion lines show the destination. Group and server order survive app restarts. Option+Shift+Up/Down on a group grip or connection provides keyboard reordering. Drag a connection onto a group to move it, including collapsed groups; the destination highlights and expands after a successful move. An Ungrouped drop target appears while dragging. Use **Move to group…** in the connection menu for a keyboard-accessible alternative or to create a new group. A confirmation offers **Undo**, which changes only the group and preserves credentials. A collapsed sidebar keeps all connections accessible as icons. Moving a connection to a different group leaves running sessions and saved authentication unchanged. Existing connections appear in Ungrouped.
+**Groups:** Set the optional Group field when adding or editing a connection. Choose an existing name or type a new one; leave it blank for Ungrouped. Click a folder in the expanded or collapsed sidebar to open its searchable connection picker. Select a connection to open a new SSH tab, or use **…** for split connections, editing, deleting, or **Move to group…**. The pencil beside a folder name renames all its saved connections together; Enter saves and Escape cancels. Blank names, duplicate folder names, and renaming Ungrouped are prevented. Drag the grip beside a folder to reorder groups, or drag a connection above/below another in the picker to reorder servers. Option+Shift+Up/Down supports keyboard reordering. Group/server order and the sidebar mode survive restarts. Moving a connection offers Undo and preserves credentials and running sessions. Existing ungrouped connections appear in Ungrouped.
+
+**Session status:** Terminal tools and saved connections display text and color for Connecting, Session active, and Disconnected. Session active means the SSH process is running, not proof of successful remote authentication. Where several sessions use the same saved connection, the picker prioritizes an active session over a starting or ended one. SSH addresses emphasize the host/IP separately from the username and port.
 
 Profiles are stored atomically at `~/Library/Application Support/com.duckfollow.ultron/ssh-profiles.json` with owner-only file permissions. The app saves connection metadata and the identity-file path; it never copies private keys or stores passwords in the profile file. **Authentication** is saved per profile:
 

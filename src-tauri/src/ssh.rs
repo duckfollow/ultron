@@ -310,6 +310,50 @@ fn move_group(
     write(path, &profiles)?;
     Ok(profiles)
 }
+fn rename_group(path: &Path, from: &str, to: &str) -> Result<Vec<Profile>, String> {
+    let from = from.trim();
+    let to = to.trim();
+    if from.is_empty() {
+        return Err("Ungrouped cannot be renamed.".into());
+    }
+    if to.is_empty() || to.chars().count() > 60 || to.chars().any(char::is_control) {
+        return Err("Enter a folder name up to 60 characters, without control characters.".into());
+    }
+    let mut profiles = read(path)?;
+    if !profiles.iter().any(|p| p.group.trim() == from) {
+        return Err("This folder no longer exists. Please reopen the picker.".into());
+    }
+    if profiles
+        .iter()
+        .any(|p| p.group.trim() != from && p.group.trim().to_lowercase() == to.to_lowercase())
+        || to.eq_ignore_ascii_case("Ungrouped")
+    {
+        return Err("A folder with this name already exists. Choose another name.".into());
+    }
+    for profile in profiles.iter_mut().filter(|p| p.group.trim() == from) {
+        profile.group = to.into();
+        profile.validate()?;
+    }
+    write(path, &profiles)?;
+    Ok(profiles)
+}
+#[tauri::command]
+pub async fn rename_ssh_group(
+    app: AppHandle,
+    store: State<'_, ProfileStore>,
+    from: String,
+    to: String,
+) -> Result<Vec<Profile>, String> {
+    let lock = store.0.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = lock
+            .lock()
+            .map_err(|_| "Connection storage is unavailable.")?;
+        rename_group(&path(&app)?, &from, &to)
+    })
+    .await
+    .map_err(|_| "Could not rename the folder.".to_string())?
+}
 #[tauri::command]
 pub async fn move_ssh_profile_group(
     app: AppHandle,
@@ -508,6 +552,43 @@ mod tests {
         assert!(reorder_profile(&path, "missing", &records[0].id, false).is_err());
         let restored = reorder_profile(&path, &records[1].id, &records[0].id, true).unwrap();
         assert_eq!(serde_json::to_value(restored).unwrap(), before);
+        fs::remove_dir_all(dir).unwrap();
+    }
+    #[test]
+    fn rename_folder_updates_all_members_and_rejects_collisions_without_writing() {
+        let dir = std::env::temp_dir().join(format!("ultron-rename-{}", uuid::Uuid::new_v4()));
+        let path = dir.join("ssh-profiles.json");
+        let mut records = vec![profile(), profile(), profile()];
+        for (index, record) in records.iter_mut().enumerate() {
+            record.id = uuid::Uuid::new_v4().to_string();
+            record.group = if index < 2 { "Dev" } else { "Production" }.into();
+        }
+        write(&path, &records).unwrap();
+        let before = fs::read(&path).unwrap();
+        for (from, to) in [
+            ("Dev", "production"),
+            ("Dev", ""),
+            ("", "Test"),
+            ("Missing", "Test"),
+            ("Dev", "Ungrouped"),
+            ("Dev", "bad\nname"),
+        ] {
+            assert!(rename_group(&path, from, to).is_err());
+            assert_eq!(fs::read(&path).unwrap(), before);
+        }
+        assert!(rename_group(&path, "Dev", &"x".repeat(61)).is_err());
+        let renamed = rename_group(&path, "Dev", " Staging ").unwrap();
+        for record in records.iter_mut().take(2) {
+            record.group = "Staging".into();
+        }
+        assert_eq!(
+            serde_json::to_value(&renamed).unwrap(),
+            serde_json::to_value(&records).unwrap()
+        );
+        assert_eq!(
+            serde_json::to_value(read(&path).unwrap()).unwrap(),
+            serde_json::to_value(records).unwrap()
+        );
         fs::remove_dir_all(dir).unwrap();
     }
     #[test]

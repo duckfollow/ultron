@@ -111,6 +111,19 @@ function App() {
     stage = useRef<HTMLDivElement>(null);
   const current = tabs.find((tab) => tab.key === active),
     pane = current?.panes.find((p) => p.id === current.activePane);
+  const profileStates: Record<string, "starting" | "live" | "ended"> = {};
+  for (const session of tabs.flatMap((tab) => tab.panes)) {
+    if (!session.sshProfile) continue;
+    const id = session.sshProfile.id;
+    const previous = profileStates[id];
+    if (
+      !previous ||
+      session.state === "live" ||
+      (session.state === "starting" && previous === "ended")
+    ) {
+      profileStates[id] = session.state;
+    }
+  }
   const utopActive = pane?.kind === "utop";
   const paneCount = tabs.reduce((count, tab) => count + tab.panes.length, 0);
   const appearanceTab = tabs.find((tab) => tab.key === appearance);
@@ -371,22 +384,8 @@ function App() {
         aria-label="Workspace sidebar"
       >
         <div className="sidebar-top">
-          <div className="brand">
-            <img
-              className="ultron-mark"
-              src={ultronLogo}
-              alt=""
-              aria-hidden="true"
-            />
-            <div className="brand-copy">
-              <strong>
-                ULTRON<span>•</span>
-              </strong>
-              <small>YOUR COMMAND CENTER</small>
-            </div>
-          </div>
           <button
-            className="icon-button sidebar-toggle"
+            className="brand sidebar-brand-toggle"
             aria-label={
               sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
             }
@@ -394,11 +393,22 @@ function App() {
             title={`${sidebarCollapsed ? "Expand" : "Collapse"} sidebar (⌘ B)`}
             onClick={() => setSidebarCollapsed((value) => !value)}
           >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen size={16} />
-            ) : (
-              <PanelLeftClose size={16} />
-            )}
+            <span className="sidebar-brand-mark" aria-hidden="true">
+              <img className="ultron-mark" src={ultronLogo} alt="" />
+              <span className="sidebar-brand-action">
+                {sidebarCollapsed ? (
+                  <PanelLeftOpen size={20} />
+                ) : (
+                  <PanelLeftClose size={20} />
+                )}
+              </span>
+            </span>
+            <span className="brand-copy">
+              <strong>
+                ULTRON<span>•</span>
+              </strong>
+              <small>YOUR COMMAND CENTER</small>
+            </span>
           </button>
         </div>
         <button
@@ -414,6 +424,8 @@ function App() {
         </button>
         <SshConnections
           profiles={profiles}
+          profileStates={profileStates}
+          activeProfileId={pane?.sshProfile?.id}
           compact={sidebarCollapsed}
           canConnect={paneCount < 12}
           error={profileError}
@@ -429,6 +441,11 @@ function App() {
               after,
             });
             setProfiles(updated);
+          }}
+          onRenameGroup={async (from, to) => {
+            setProfiles(
+              await invoke<SshProfile[]>("rename_ssh_group", { from, to }),
+            );
           }}
           onMove={async (id, group, expectedGroup) => {
             const updated = await invoke<SshProfile[]>(
@@ -449,6 +466,13 @@ function App() {
           <span>{String(tabs.length).padStart(2, "0")}</span>
         </div>
         <nav aria-label="Terminal sessions">
+          {!tabs.length && !sidebarCollapsed && (
+            <div className="sidebar-workspace-empty">
+              <Terminal size={18} aria-hidden="true" />
+              <span>No active sessions</span>
+              <small>Open a terminal to get started.</small>
+            </div>
+          )}
           {tabs.map((tab) => (
             <div
               key={tab.key}
@@ -612,87 +636,147 @@ function App() {
         </div>
         <div className="terminal-toolbar">
           <span>
-            <span className="status-line" />
-            {utopActive
-              ? "UTOP"
-              : pane?.state === "ended"
-                ? "SESSION ENDED"
-                : "TERMINAL"}
-            <small title="Starting directory">
+            <span className="terminal-mode">
+              <span className="status-line" />
               {utopActive
-                ? "LOCAL MACHINE"
-                : pane?.sshProfile
+                ? "UTOP"
+                : pane?.state === "ended"
+                  ? "SESSION ENDED"
+                  : "TERMINAL"}
+            </span>
+            {pane && !utopActive && (
+              <span className={`connection-state ${pane.state}`} role="status">
+                <i className={`state-dot ${pane.state}`} aria-hidden="true" />
+                {pane.state === "starting"
+                  ? pane.sshProfile
+                    ? "Connecting"
+                    : "Starting"
+                  : pane.state === "ended"
+                    ? pane.sshProfile
+                      ? "Disconnected"
+                      : "Ended"
+                    : pane.sshProfile
+                      ? "Session active"
+                      : "Running"}
+              </span>
+            )}
+            <small
+              title={
+                pane?.sshProfile && !utopActive
                   ? profileAddress(pane.sshProfile)
-                  : (pane?.info?.cwd ?? "LOCAL SHELL")}
+                  : "Starting directory"
+              }
+            >
+              {utopActive ? (
+                "LOCAL MACHINE"
+              ) : pane?.sshProfile ? (
+                <span className="ssh-status-address">
+                  <span>{pane.sshProfile.username}@</span>
+                  <strong>
+                    {pane.sshProfile.host.includes(":")
+                      ? `[${pane.sshProfile.host}]`
+                      : pane.sshProfile.host}
+                  </strong>
+                  <span>:{pane.sshProfile.port}</span>
+                </span>
+              ) : (
+                (pane?.info?.cwd ?? "LOCAL SHELL")
+              )}
             </small>
           </span>
-          <div>
-            <button
-              className="icon-button"
-              aria-label="Split left / right"
-              title={splitHint("columns")}
-              disabled={!canSplit("columns")}
-              onClick={() => split("columns")}
+          <div
+            className="terminal-toolbar-actions"
+            role="toolbar"
+            aria-label="Terminal tools"
+          >
+            <span
+              className="terminal-tool-group"
+              role="group"
+              aria-label="Layout and appearance"
             >
-              <Columns2 size={15} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label="Split top / bottom"
-              title={splitHint("rows")}
-              disabled={!canSplit("rows")}
-              onClick={() => split("rows")}
+              <button
+                className="icon-button"
+                aria-label="Split left / right"
+                title={splitHint("columns")}
+                disabled={!canSplit("columns")}
+                onClick={() => split("columns")}
+              >
+                <Columns2 size={15} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label="Split top / bottom"
+                title={splitHint("rows")}
+                disabled={!canSplit("rows")}
+                onClick={() => split("rows")}
+              >
+                <Rows2 size={15} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label="Tab appearance"
+                title="Rename / color"
+                disabled={!current}
+                onClick={() => setAppearance(active)}
+              >
+                <Palette size={14} />
+              </button>
+            </span>
+            <span
+              className="terminal-tool-group terminal-font-tools"
+              role="group"
+              aria-label="Font size"
             >
-              <Rows2 size={15} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label="Tab appearance"
-              title="Rename / color"
-              disabled={!current}
-              onClick={() => setAppearance(active)}
+              <span className="terminal-tool-label" aria-hidden="true">
+                Aa
+              </span>
+              <button
+                className="icon-button"
+                aria-label="Decrease font size"
+                title="Decrease font size"
+                disabled={!pane || utopActive}
+                onClick={() => handle()?.zoom(-1)}
+              >
+                <Minus size={13} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label="Increase font size"
+                title="Increase font size"
+                disabled={!pane || utopActive}
+                onClick={() => handle()?.zoom(1)}
+              >
+                <Plus size={13} />
+              </button>
+            </span>
+            <span
+              className="terminal-tool-group"
+              role="group"
+              aria-label="Search and clear"
             >
-              <Palette size={14} />
-            </button>
-            <span className="divider" />
-            <button
-              className="icon-button"
-              aria-label="Decrease font size"
-              disabled={!pane || utopActive}
-              onClick={() => handle()?.zoom(-1)}
-            >
-              <Minus size={13} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label="Increase font size"
-              disabled={!pane || utopActive}
-              onClick={() => handle()?.zoom(1)}
-            >
-              <Plus size={13} />
-            </button>
-            <span className="divider" />
-            <button
-              className="icon-button"
-              aria-label="Find in terminal"
-              disabled={!pane || utopActive}
-              title="Find (⌘ F)"
-              onClick={() => {
-                if (find) dismissSearch();
-                else setFind(true);
-              }}
-            >
-              <Search size={14} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label="Clear scrollback"
-              disabled={!pane || utopActive}
-              title="Clear scrollback (⌘ K)"
-              onClick={() => handle()?.clear()}
-            >
-              <Eraser size={14} />
-            </button>
+              <button
+                className="icon-button"
+                aria-label="Find in terminal"
+                aria-pressed={find}
+                disabled={!pane || utopActive}
+                title="Find (⌘ F)"
+                onClick={() => {
+                  if (find) dismissSearch();
+                  else setFind(true);
+                }}
+              >
+                <Search size={14} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label="Clear scrollback"
+                disabled={!pane || utopActive}
+                title="Clear scrollback (⌘ K)"
+                onClick={() => handle()?.clear()}
+              >
+                <Eraser size={14} />
+              </button>
+            </span>
           </div>
         </div>
         {find && (
@@ -786,17 +870,43 @@ function App() {
         <footer>
           <span>
             <i className={`state-dot ${pane?.state ?? ""}`} />
-            {utopActive
-              ? "Utop · Local machine · Read only"
-              : pane?.state === "live"
-                ? pane.sshProfile
-                  ? `SSH session · ${profileAddress(pane.sshProfile)}`
-                  : "Connected to local shell"
-                : pane?.state === "ended"
-                  ? "Session ended"
-                  : tabs.length
-                    ? "Starting…"
-                    : "No open terminals"}
+            {utopActive ? (
+              "Utop · Local machine · Read only"
+            ) : pane?.state === "live" ? (
+              pane.sshProfile ? (
+                <span className="ssh-session-status">
+                  <span>SSH session ·</span>
+                  <span
+                    className="ssh-status-address"
+                    title={profileAddress(pane.sshProfile)}
+                  >
+                    <span>{pane.sshProfile.username}@</span>
+                    <strong>
+                      {pane.sshProfile.host.includes(":")
+                        ? `[${pane.sshProfile.host}]`
+                        : pane.sshProfile.host}
+                    </strong>
+                    <span>:{pane.sshProfile.port}</span>
+                  </span>
+                </span>
+              ) : (
+                "Connected to local shell"
+              )
+            ) : pane?.state === "ended" ? (
+              pane.sshProfile ? (
+                "SSH disconnected"
+              ) : (
+                "Session ended"
+              )
+            ) : tabs.length ? (
+              pane?.sshProfile ? (
+                "Connecting to SSH…"
+              ) : (
+                "Starting…"
+              )
+            ) : (
+              "No open terminals"
+            )}
           </span>
           <div>
             {current && current.panes.length > 1 && (

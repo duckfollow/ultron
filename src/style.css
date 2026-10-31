@@ -313,46 +313,114 @@ nav {
   margin: auto 9px;
 }
 .terminal-toolbar {
-  height: 49px;
+  min-height: 64px;
   flex-shrink: 0;
-  padding: 0 22px;
+  padding: 10px 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #8b8f9b;
+  gap: 16px;
+  color: #8f99aa;
+  background: linear-gradient(180deg, #ffffff02, transparent);
 }
 .terminal-toolbar > span {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.terminal-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 7px 9px;
+  border: 1px solid #ffffff0d;
+  border-radius: 7px;
+  background: #ffffff03;
+  color: #b2bac8;
   font:
     9px Menlo,
     monospace;
-  letter-spacing: 1.3px;
-  min-width: 0;
+  letter-spacing: 1px;
 }
 .status-line {
   width: 3px;
   height: 11px;
-  border-radius: 1px;
+  flex-shrink: 0;
+  border-radius: 2px;
   background: #ad5a67;
 }
 .terminal-toolbar small {
+  min-width: 0;
   font:
-    10px Menlo,
+    11px Menlo,
     monospace;
-  color: #555966;
+  color: #929bad;
   letter-spacing: 0;
-  margin-left: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.terminal-toolbar > div {
+.terminal-toolbar small .ssh-status-address {
+  display: inline;
+}
+.terminal-toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 8px;
+  flex-shrink: 0;
 }
+.terminal-tool-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #ffffff0b;
+  border-radius: 9px;
+  background: #ffffff03;
+}
+.terminal-tool-group .icon-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: #9ca6b6;
+}
+.terminal-tool-group .icon-button:hover:not(:disabled) {
+  background: #ffffff0b;
+  color: #e0e7ee;
+}
+.terminal-tool-group .icon-button[aria-pressed="true"] {
+  background: #8ac0aa18;
+  color: #add5c3;
+}
+.terminal-tool-group .icon-button:focus-visible {
+  outline: 2px solid #8ac0aa;
+  outline-offset: -2px;
+}
+.terminal-tool-group .icon-button:disabled {
+  opacity: 0.3;
+}
+.terminal-tool-label {
+  padding: 0 5px 0 7px;
+  font-size: 11px;
+  color: #8993a3;
+}
+@media (max-width: 1000px) {
+  .terminal-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  .terminal-toolbar > span {
+    flex-basis: 100%;
+  }
+  .terminal-toolbar-actions {
+    margin-left: auto;
+  }
+}
+
 .divider {
   width: 1px;
   height: 13px;
@@ -984,9 +1052,6 @@ aside nav {
 .sidebar-top .brand small {
   font-size: 6px;
   letter-spacing: 1px;
-}
-.sidebar-toggle {
-  flex-shrink: 0;
 }
 .session-index {
   display: none;
@@ -1849,4 +1914,720 @@ aside nav {
 .ssh-move-feedback button:focus-visible {
   outline: 2px solid #a1cfb7;
   outline-offset: 3px;
+}
+
+/* Project folders share a connection picker in both sidebar sizes. */
+.ssh-project-button.active {
+  background: #8ac0aa16;
+  color: #b6d8ca;
+}
+.ssh-project-button > span {
+  flex: 1;
+}
+.ssh-project-button > span > small {
+  display: block;
+  margin-top: 4px;
+  color: #8ac0aa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar.collapsed .ssh-project-button {
+  justify-content: center;
+  padding: 12px 0;
+  min-height: 43px;
+}
+.sidebar.collapsed .ssh-project-button > span,
+.sidebar.collapsed .ssh-project-button > small {
+  display: none;
+}
+.ssh-picker {
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid #ffffff14;
+  border-radius: 18px;
+  background: #1b1d24;
+  color: #d5d9e3;
+  box-shadow:
+    0 32px 100px #0009,
+    0 1px 0 #ffffff08 inset;
+}
+.ssh-picker::backdrop {
+  background: #080a10b8;
+  backdrop-filter: blur(6px);
+}
+.ssh-picker > header {
+  margin-bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 13px;
+  padding: 24px 28px 20px;
+  background: linear-gradient(125deg, #8ac0aa08, transparent 70%);
+}
+.ssh-picker-folder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid #8ac0aa26;
+  border-radius: 12px;
+  background: #8ac0aa10;
+  color: #a3cdbb;
+}
+.ssh-picker-heading {
+  flex: 1;
+  min-width: 0;
+}
+.ssh-picker-eyebrow {
+  display: block;
+  margin: 0 0 5px;
+  color: #8e98a8;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.ssh-picker h2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+.ssh-picker-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ssh-picker h2 .icon-button {
+  width: 28px;
+  height: 28px;
+  color: #8c96a6;
+  flex-shrink: 0;
+  border-radius: 7px;
+}
+.ssh-picker .icon-button:hover {
+  background: #ffffff0a;
+  color: #d8e5df;
+}
+.ssh-picker > header > .icon-button {
+  width: 30px;
+  height: 30px;
+  color: #858e9e;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+.ssh-picker header p {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #929bad;
+  line-height: 1.5;
+}
+.ssh-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 28px 24px;
+  padding: 13px 14px;
+  border: 1px solid #ffffff12;
+  border-radius: 10px;
+  background: #11131980;
+  color: #7e8999;
+}
+.ssh-picker-search:focus-within {
+  border-color: #8ac0aa70;
+  box-shadow: 0 0 0 3px #8ac0aa08;
+}
+.ssh-picker-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #e1e5ed;
+  font: inherit;
+  font-size: 13px;
+}
+.ssh-picker-search input::placeholder {
+  color: #788291;
+}
+.ssh-picker-list-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 28px 10px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: #8791a1;
+}
+.ssh-picker-list-label > span:last-child {
+  padding: 3px 7px;
+  background: #ffffff06;
+  border-radius: 5px;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.ssh-picker-list {
+  max-height: 340px;
+  overflow: auto;
+  padding: 0 20px 20px;
+}
+.ssh-picker .ssh-profile-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 6px 0;
+  border: 1px solid #ffffff08;
+  border-radius: 11px;
+  min-height: 76px;
+  background: #ffffff02;
+}
+.ssh-picker .ssh-profile-row:hover,
+.ssh-picker .ssh-profile-row:focus-within {
+  background: #ffffff06;
+  border-color: #ffffff18;
+}
+.ssh-picker .ssh-profile-row.is-current {
+  background: #8ac0aa08;
+  border-color: #8ac0aa28;
+}
+.ssh-picker .ssh-profile {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  gap: 12px;
+  padding: 14px 12px 14px 6px;
+  border-radius: 10px;
+}
+.ssh-picker .ssh-profile > .ssh-picker-server {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #ffffff0b;
+  border-radius: 10px;
+  background: #242932;
+  color: #98afc1;
+  flex-shrink: 0;
+}
+.ssh-picker .is-current .ssh-picker-server {
+  color: #a3cdbb;
+  background: #8ac0aa10;
+  border-color: #8ac0aa18;
+}
+.ssh-picker .ssh-profile > .ssh-picker-connection-name {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.ssh-picker .ssh-profile small {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #8b96a6;
+  font-weight: 400;
+}
+.ssh-picker .ssh-drag-grip {
+  flex-shrink: 0;
+}
+.ssh-picker .ssh-profile-more {
+  opacity: 1;
+  width: 30px;
+  height: 32px;
+  margin-right: 10px;
+  color: #8993a3;
+  border-radius: 7px;
+}
+.ssh-picker-connect-arrow {
+  flex-shrink: 0;
+  color: #9bb4a8;
+  opacity: 0;
+  margin-right: 10px;
+}
+.ssh-profile-row:hover .ssh-picker-connect-arrow,
+.ssh-profile-row:focus-within .ssh-picker-connect-arrow {
+  opacity: 1;
+}
+.ssh-current {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: #8ac0aa12;
+  color: #a3cdbb;
+  font-size: 10px;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+.ssh-picker > footer {
+  height: auto;
+  min-height: 66px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 28px;
+  border-top: 1px solid #ffffff09;
+  background: #14161c50;
+  font-size: 11px;
+  color: #929bad;
+}
+.ssh-picker-footer-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #7f8999;
+}
+.ssh-picker-footer-hint kbd {
+  padding: 3px 5px;
+  border: 1px solid #ffffff12;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.ssh-picker > footer button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: 1px solid #8ac0aa28;
+  border-radius: 8px;
+  background: #8ac0aa10;
+  color: #b6d8ca;
+  font-size: 12px;
+}
+.ssh-picker > footer button:hover {
+  background: #8ac0aa20;
+}
+.ssh-picker-empty,
+.ssh-picker-hint {
+  padding: 28px 24px;
+  text-align: center;
+  color: #929bad;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.ssh-picker button:focus-visible {
+  outline: 2px solid #8ac0aa;
+  outline-offset: -2px;
+}
+@media (max-width: 480px) {
+  .ssh-picker > header {
+    padding: 20px;
+    gap: 12px;
+  }
+  .ssh-picker-folder {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+  .ssh-picker h2 {
+    font-size: 19px;
+  }
+  .ssh-picker-search {
+    margin: 0 20px 20px;
+  }
+  .ssh-picker-list-label {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+  .ssh-picker-list {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .ssh-picker > footer {
+    padding: 14px 20px;
+  }
+  .ssh-picker-connect-arrow {
+    display: none;
+  }
+  .ssh-current {
+    font-size: 0;
+    padding: 5px;
+    margin-right: 4px;
+  }
+}
+
+.sidebar-brand-toggle {
+  text-align: left;
+  border-radius: 7px;
+  color: inherit;
+  cursor: pointer;
+}
+.sidebar-brand-toggle:hover,
+.sidebar-brand-toggle:focus-visible {
+  background: #ffffff08;
+}
+.sidebar-brand-mark {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+}
+.sidebar-brand-action {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  color: #b6d8ca;
+}
+.sidebar-brand-toggle:hover .ultron-mark,
+.sidebar-brand-toggle:focus-visible .ultron-mark {
+  opacity: 0;
+}
+.sidebar-brand-toggle:hover .sidebar-brand-action,
+.sidebar-brand-toggle:focus-visible .sidebar-brand-action {
+  opacity: 1;
+}
+.sidebar.collapsed .sidebar-brand-toggle {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.ssh-folder-rename {
+  margin: 0 28px 22px;
+  padding: 16px;
+  background: #11131960;
+  border: 1px solid #ffffff0d;
+  border-radius: 10px;
+}
+.ssh-folder-rename > label {
+  display: block;
+  margin-bottom: 8px;
+  color: #929bad;
+  font-size: 12px;
+}
+.ssh-folder-rename > div {
+  display: flex;
+  gap: 8px;
+}
+.ssh-folder-rename input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #3b4150;
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: #14161c;
+  color: #e1e5ed;
+}
+.ssh-folder-rename input:focus-visible {
+  outline: 2px solid #8ac0aa;
+  outline-offset: -2px;
+}
+.ssh-folder-rename button {
+  border: 1px solid #3b4150;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.ssh-folder-rename button[type="submit"] {
+  background: #8ac0aa20;
+  color: #b6d8ca;
+}
+.ssh-folder-rename > p {
+  margin: 8px 0 0;
+  color: #f2a0ab;
+  font-size: 12px;
+}
+
+.ssh-session-status {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  color: #929bad;
+}
+.ssh-status-address {
+  display: inline-block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #a2abba;
+}
+.ssh-status-address strong {
+  color: #92ceef;
+  font-weight: 600;
+}
+
+/* Sidebar navigation */
+.sidebar:not(.collapsed) {
+  width: 240px;
+  padding: 24px 14px 14px;
+  background: linear-gradient(180deg, #1a1b23 0%, #17181f 220px, #17181d 100%);
+}
+.sidebar:not(.collapsed) .sidebar-top {
+  margin: 0 0 24px;
+}
+.sidebar:not(.collapsed) .sidebar-brand-toggle {
+  justify-content: flex-start;
+  padding: 6px 0;
+}
+.sidebar:not(.collapsed) .sidebar-top .brand {
+  gap: 11px;
+}
+.sidebar:not(.collapsed) .brand strong {
+  font-size: 18px;
+  letter-spacing: 2.2px;
+}
+.sidebar:not(.collapsed) .brand small {
+  margin-top: 5px;
+  color: #8991a0;
+  font-size: 6px;
+  letter-spacing: 1.1px;
+}
+.sidebar:not(.collapsed) .ultron-mark {
+  width: 36px;
+  height: 36px;
+}
+.sidebar:not(.collapsed) .new-session {
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid #f2747c38;
+  border-radius: 10px;
+  background: linear-gradient(115deg, #f2747c1c, #f2747c0b);
+  color: #f4b1b9;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 1px 0 #ffffff04 inset;
+}
+.sidebar:not(.collapsed) .new-session:hover:not(:disabled) {
+  border-color: #f2747c70;
+  background: #f2747c22;
+  color: #ffd4d8;
+}
+.sidebar:not(.collapsed) .new-session kbd {
+  font-size: 9px;
+  color: #c18d96;
+  font-weight: 400;
+}
+.sidebar:not(.collapsed) .section-label {
+  align-items: center;
+  margin: 26px 10px 10px;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  color: #8e98a9;
+}
+.sidebar:not(.collapsed) .section-label > span:first-child {
+  letter-spacing: 1.2px;
+}
+.sidebar:not(.collapsed) .ssh-connections {
+  margin-top: 24px;
+}
+.sidebar:not(.collapsed) .ssh-connections .section-label {
+  margin-top: 0;
+  margin-bottom: 9px;
+}
+.sidebar:not(.collapsed) .ssh-connections .section-label .icon-button {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #ffffff0b;
+  border-radius: 6px;
+  background: #ffffff03;
+  color: #a3adbd;
+}
+.sidebar:not(.collapsed) .ssh-connections .section-label .icon-button:hover {
+  color: #c2ddcf;
+  background: #8ac0aa16;
+  border-color: #8ac0aa30;
+}
+.sidebar:not(.collapsed) .ssh-group {
+  position: relative;
+  margin: 5px 0;
+  background: #ffffff02;
+  border: 1px solid #ffffff08;
+  border-radius: 10px;
+}
+.sidebar:not(.collapsed) .ssh-group:hover {
+  border-color: #ffffff18;
+  background: #ffffff04;
+}
+.sidebar:not(.collapsed) .ssh-group-heading {
+  min-height: 53px;
+}
+.sidebar:not(.collapsed) .ssh-group-grip {
+  width: 12px;
+  opacity: 0;
+}
+.sidebar:not(.collapsed) .ssh-group:hover .ssh-group-grip,
+.sidebar:not(.collapsed) .ssh-group:focus-within .ssh-group-grip {
+  opacity: 1;
+}
+.sidebar:not(.collapsed) .ssh-project-button {
+  min-height: 51px;
+  padding: 8px 10px 8px 2px;
+  gap: 10px;
+  border-radius: 9px;
+  color: #b5becd;
+}
+.sidebar:not(.collapsed) .ssh-project-button > svg {
+  width: 30px;
+  height: 30px;
+  padding: 7px;
+  background: #879bb510;
+  border: 1px solid #879bb515;
+  border-radius: 8px;
+  color: #9eb2c8;
+}
+.sidebar:not(.collapsed) .ssh-project-button > span {
+  font-size: 12px;
+  font-weight: 500;
+}
+.sidebar:not(.collapsed) .ssh-project-button > small,
+.sidebar:not(.collapsed) .workspace-section-label > span:last-child {
+  min-width: 21px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: #ffffff05;
+  color: #919bac;
+  font-size: 9px;
+  font-weight: 500;
+  text-align: center;
+}
+.sidebar:not(.collapsed) .ssh-project-button.active {
+  color: #c1dece;
+  background: #8ac0aa0c;
+}
+.sidebar:not(.collapsed) .ssh-project-button.active > svg {
+  color: #b2d6c4;
+  background: #8ac0aa14;
+  border-color: #8ac0aa20;
+}
+.sidebar-workspace-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 2px 12px;
+  padding: 22px 10px;
+  border: 1px dashed #ffffff0d;
+  border-radius: 10px;
+  color: #717d8f;
+}
+.sidebar-workspace-empty > span {
+  font-size: 11px;
+  color: #949eae;
+}
+.sidebar-workspace-empty > small {
+  font-size: 9px;
+  line-height: 1.5;
+  color: #778294;
+  text-align: center;
+}
+.sidebar:not(.collapsed) .sidebar-bottom {
+  padding-top: 12px;
+}
+.sidebar:not(.collapsed) .sidebar-tools {
+  padding: 4px;
+  background: #ffffff03;
+  border: 1px solid #ffffff08;
+  border-radius: 10px;
+}
+.sidebar:not(.collapsed) .sidebar-tools > button {
+  border-radius: 7px;
+  min-height: 34px;
+}
+.sidebar:not(.collapsed) .app-updates {
+  border-top: 0;
+  margin-top: 8px;
+  padding-top: 0;
+}
+.sidebar:not(.collapsed) .update-nav-button {
+  padding: 10px 11px;
+  border-radius: 9px;
+  color: #8e98a9;
+}
+.sidebar:not(.collapsed) .update-nav-version {
+  max-width: 104px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 8px;
+  color: #717e90;
+}
+@media (max-width: 900px) {
+  .sidebar:not(.collapsed) {
+    width: 210px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .sidebar:not(.collapsed) .brand strong {
+    font-size: 16px;
+  }
+  .sidebar:not(.collapsed) .brand small {
+    font-size: 5px;
+  }
+}
+
+.connection-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 5px 7px;
+  border: 1px solid #ffffff12;
+  border-radius: 6px;
+  color: #a3adbd;
+  background: #ffffff04;
+  font:
+    10px -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: 0;
+}
+.connection-state.live {
+  color: #b1d8c3;
+  border-color: #8ac0aa25;
+  background: #8ac0aa0b;
+}
+.connection-state.starting {
+  color: #e0c28b;
+  border-color: #d2aa6e30;
+  background: #d2aa6e0c;
+}
+.connection-state.ended {
+  color: #e7a5af;
+  border-color: #e58c9b28;
+  background: #e58c9b0b;
+}
+.state-dot.ended {
+  background: #e58c9b;
+}
+.ssh-picker .connection-state {
+  margin-right: 8px;
+  font-size: 9px;
+  padding: 4px 6px;
+}
+.ssh-picker .ssh-current-label {
+  display: none;
+}
+.ssh-picker .ssh-picker-connect-arrow {
+  display: none;
+}
+@media (max-width: 480px) {
+  .ssh-picker .connection-state {
+    max-width: 90px;
+    font-size: 8px;
+    gap: 4px;
+  }
+  .terminal-toolbar > span {
+    flex-wrap: wrap;
+  }
+  .terminal-toolbar small {
+    flex-basis: 100%;
+  }
 }
