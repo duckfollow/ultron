@@ -2256,43 +2256,8 @@ aside nav {
   }
 }
 
-.sidebar-brand-toggle {
-  text-align: left;
-  border-radius: 7px;
-  color: inherit;
-  cursor: pointer;
-}
-.sidebar-brand-toggle:hover,
-.sidebar-brand-toggle:focus-visible {
-  background: #ffffff08;
-}
-.sidebar-brand-mark {
-  position: relative;
-  display: block;
+.sidebar-toggle {
   flex-shrink: 0;
-}
-.sidebar-brand-action {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  color: #b6d8ca;
-}
-.sidebar-brand-toggle:hover .ultron-mark,
-.sidebar-brand-toggle:focus-visible .ultron-mark {
-  opacity: 0;
-}
-.sidebar-brand-toggle:hover .sidebar-brand-action,
-.sidebar-brand-toggle:focus-visible .sidebar-brand-action {
-  opacity: 1;
-}
-.sidebar.collapsed .sidebar-brand-toggle {
-  flex: none;
-  width: 44px;
-  min-height: 44px;
-  justify-content: center;
 }
 
 .ssh-folder-rename {
@@ -2370,7 +2335,7 @@ aside nav {
 .sidebar:not(.collapsed) .sidebar-top {
   margin: 0 0 24px;
 }
-.sidebar:not(.collapsed) .sidebar-brand-toggle {
+.sidebar:not(.collapsed) .sidebar-top .brand {
   justify-content: flex-start;
   padding: 6px 0;
 }

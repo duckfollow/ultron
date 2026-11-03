@@ -384,8 +384,22 @@ function App() {
         aria-label="Workspace sidebar"
       >
         <div className="sidebar-top">
+          <div className="brand">
+            <img
+              className="ultron-mark"
+              src={ultronLogo}
+              alt=""
+              aria-hidden="true"
+            />
+            <div className="brand-copy">
+              <strong>
+                ULTRON<span>•</span>
+              </strong>
+              <small>YOUR COMMAND CENTER</small>
+            </div>
+          </div>
           <button
-            className="brand sidebar-brand-toggle"
+            className="icon-button sidebar-toggle"
             aria-label={
               sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
             }
@@ -393,22 +407,11 @@ function App() {
             title={`${sidebarCollapsed ? "Expand" : "Collapse"} sidebar (⌘ B)`}
             onClick={() => setSidebarCollapsed((value) => !value)}
           >
-            <span className="sidebar-brand-mark" aria-hidden="true">
-              <img className="ultron-mark" src={ultronLogo} alt="" />
-              <span className="sidebar-brand-action">
-                {sidebarCollapsed ? (
-                  <PanelLeftOpen size={20} />
-                ) : (
-                  <PanelLeftClose size={20} />
-                )}
-              </span>
-            </span>
-            <span className="brand-copy">
-              <strong>
-                ULTRON<span>•</span>
-              </strong>
-              <small>YOUR COMMAND CENTER</small>
-            </span>
+            {sidebarCollapsed ? (
+              <PanelLeftOpen size={16} />
+            ) : (
+              <PanelLeftClose size={16} />
+            )}
           </button>
         </div>
         <button
