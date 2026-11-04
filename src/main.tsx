@@ -4,7 +4,13 @@ import { UtopMenu } from "./UtopMenu";
 import { CommandSnippets } from "./CommandSnippets";
 import { UpdateNotice } from "./UpdateNotice";
 const ultronLogo = new URL("../src-tauri/icon.svg", import.meta.url).href;
-import { useState, useRef, useEffect, type CSSProperties } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  type CSSProperties,
+} from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { SshConnections } from "./SshConnections";
 import { SshProfileDialog } from "./SshProfileDialog";
@@ -29,8 +35,8 @@ import {
   Columns2,
   Rows2,
   Palette,
-  PanelLeftClose,
-  PanelLeftOpen,
+  PanelTopClose,
+  PanelTopOpen,
   SquareTerminal,
   BookOpen,
   Activity,
@@ -55,12 +61,55 @@ import {
 } from "./workspace-model";
 import { SplitWorkspace } from "./SplitWorkspace";
 import { TabAppearance } from "./TabAppearance";
+import { SessionContextMenu } from "./SessionContextMenu";
 import "./style.css";
 const firstTab = makeTab(1);
 function App() {
+  const [sessionMenu, setSessionMenu] = useState<{
+    tabId: string;
+    x: number;
+    y: number;
+    trigger: HTMLButtonElement;
+  } | null>(null);
+  const [tabbarHidden, setTabbarHidden] = useState(() => {
+    try {
+      return localStorage.getItem("ultron.tabbarHidden") === "true";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("ultron.tabbarHidden", String(tabbarHidden));
+    } catch {
+      /* The toggle still works when preference storage is unavailable. */
+    }
+  }, [tabbarHidden]);
   const [snippetsOpen, setSnippetsOpen] = useState(false);
   const [tabs, setTabs] = useState<Tab[]>([firstTab]),
     [active, setActive] = useState(firstTab.key);
+  const tabbar = useRef<HTMLDivElement>(null);
+  const activeTabElement = useRef<HTMLDivElement>(null);
+  const tabSequence = tabs.map((tab) => tab.key).join(",");
+  useLayoutEffect(() => {
+    if (tabbarHidden) return;
+    const bar = tabbar.current;
+    const selected = activeTabElement.current;
+    if (!bar || !selected) return;
+    const reveal = () => {
+      const viewport = bar.getBoundingClientRect();
+      const tab = selected.getBoundingClientRect();
+      // Scroll only the tab strip; keep terminal scrollback and sidebar in place.
+      if (tab.left < viewport.left) bar.scrollLeft += tab.left - viewport.left;
+      else if (tab.right > viewport.right)
+        bar.scrollLeft += tab.right - viewport.right;
+    };
+    reveal();
+    const observer = new ResizeObserver(reveal);
+    observer.observe(bar);
+    observer.observe(selected);
+    return () => observer.disconnect();
+  }, [active, tabbarHidden, tabSequence]);
   const reorderTabs = (source: string, target: string, after: boolean) =>
     setTabs((current) =>
       reorderRelative(current, source, target, after, (tab) => tab.key),
@@ -146,10 +195,28 @@ function App() {
     setTabs((old) => old.map((tab) => (tab.key === id ? change(tab) : tab)));
   }
   function updatePane(tabId: string, id: string, patch: Partial<Pane>) {
-    updateTab(tabId, (tab) => ({
-      ...tab,
-      panes: tab.panes.map((p) => (p.id === id ? { ...p, ...patch } : p)),
-    }));
+    setTabs((old) => {
+      const tab = old.find((item) => item.key === tabId);
+      const pane = tab?.panes.find((item) => item.id === id);
+      if (
+        !tab ||
+        !pane ||
+        Object.entries(patch).every(
+          ([key, value]) => pane[key as keyof Pane] === value,
+        )
+      )
+        return old;
+      return old.map((item) =>
+        item !== tab
+          ? item
+          : {
+              ...tab,
+              panes: tab.panes.map((p) =>
+                p.id === id ? { ...p, ...patch } : p,
+              ),
+            },
+      );
+    });
   }
   function clearSearch() {
     handle()?.find("");
@@ -380,6 +447,7 @@ function App() {
   return (
     <main className="app">
       <aside
+        id="workspace-sidebar"
         className={sidebarCollapsed ? "sidebar collapsed" : "sidebar"}
         aria-label="Workspace sidebar"
       >
@@ -398,21 +466,6 @@ function App() {
               <small>YOUR COMMAND CENTER</small>
             </div>
           </div>
-          <button
-            className="icon-button sidebar-toggle"
-            aria-label={
-              sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
-            }
-            aria-expanded={!sidebarCollapsed}
-            title={`${sidebarCollapsed ? "Expand" : "Collapse"} sidebar (⌘ B)`}
-            onClick={() => setSidebarCollapsed((value) => !value)}
-          >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen size={16} />
-            ) : (
-              <PanelLeftClose size={16} />
-            )}
-          </button>
         </div>
         <button
           className="new-session"
@@ -496,7 +549,13 @@ function App() {
                 onDoubleClick={() => setAppearance(tab.key)}
                 onContextMenu={(event) => {
                   event.preventDefault();
-                  setAppearance(tab.key);
+                  const bounds = event.currentTarget.getBoundingClientRect();
+                  setSessionMenu({
+                    tabId: tab.key,
+                    x: event.clientX || bounds.right,
+                    y: event.clientY || bounds.top,
+                    trigger: event.currentTarget,
+                  });
                 }}
                 aria-label={name(tab)}
                 title={`${name(tab)} · Double-click to rename or change color`}
@@ -559,7 +618,46 @@ function App() {
         style={current ? tabStyle(current) : undefined}
       >
         <header className="topbar">
-          <div>
+          <div className="workspace-heading">
+            <button
+              className="icon-button sidebar-toggle"
+              aria-label={
+                sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              }
+              aria-controls="workspace-sidebar"
+              aria-expanded={!sidebarCollapsed}
+              title={`${sidebarCollapsed ? "Expand" : "Collapse"} sidebar (⌘ B)`}
+              onClick={() => setSidebarCollapsed((value) => !value)}
+            >
+              <svg
+                width={20}
+                height={20}
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9 3H5a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h4Z"
+                  fill="currentColor"
+                />
+                <rect
+                  x={2}
+                  y={3}
+                  width={20}
+                  height={18}
+                  rx={3}
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                />
+                <path d="M9 3v18" stroke="currentColor" strokeWidth={1.5} />
+                <path
+                  d="M4.5 8h2M4.5 12h2M4.5 16h2"
+                  stroke="#14151a"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
             <span className="breadcrumb">Workspace</span>
             <span className="slash">/</span>
             <strong>
@@ -581,61 +679,90 @@ function App() {
               canSplit={canSplit}
               onOpen={openUtop}
             />
+            <button
+              className="icon-button"
+              onClick={() => setTabbarHidden((hidden) => !hidden)}
+              aria-label={tabbarHidden ? "Show tab bar" : "Hide tab bar"}
+              title={tabbarHidden ? "Show tab bar" : "Hide tab bar"}
+              aria-expanded={!tabbarHidden}
+              aria-controls="terminal-tabbar"
+            >
+              {tabbarHidden ? (
+                <PanelTopOpen size={16} />
+              ) : (
+                <PanelTopClose size={16} />
+              )}
+            </button>
           </div>
         </header>
-        <div className="tabbar" role="tablist" aria-label="Open terminals">
-          {tabs.map((tab) => (
+        <div
+          className={`tabbar-reveal${tabbarHidden ? " is-hidden" : ""}`}
+          aria-hidden={tabbarHidden}
+          inert={tabbarHidden}
+        >
+          <div className="tabbar-clip">
             <div
-              className={`tab ${active === tab.key ? "active" : ""}${tabOrder.className(tab.key)}`}
-              {...tabOrder.props(tab.key, true)}
-              key={tab.key}
-              style={tabStyle(tab)}
-              onContextMenu={(event) => {
-                event.preventDefault();
-                setAppearance(tab.key);
-              }}
+              id="terminal-tabbar"
+              ref={tabbar}
+              className="tabbar"
+              role="tablist"
+              aria-label="Open terminals"
             >
+              {tabs.map((tab) => (
+                <div
+                  className={`tab ${active === tab.key ? "active" : ""}${tabOrder.className(tab.key)}`}
+                  {...tabOrder.props(tab.key, true)}
+                  key={tab.key}
+                  ref={active === tab.key ? activeTabElement : undefined}
+                  style={tabStyle(tab)}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    setAppearance(tab.key);
+                  }}
+                >
+                  <button
+                    role="tab"
+                    aria-selected={active === tab.key}
+                    onClick={() => {
+                      if (
+                        !tabOrder.suppress.current &&
+                        !sessionOrder.suppress.current
+                      )
+                        select(tab.key);
+                    }}
+                    onDoubleClick={() => setAppearance(tab.key)}
+                    title={name(tab)}
+                  >
+                    {tab.panes.every((pane) => pane.kind === "utop") ? (
+                      <Activity size={13} />
+                    ) : (
+                      <Terminal size={13} />
+                    )}
+                    <span className="tab-label">{name(tab)}</span>
+                    {tab.panes.length > 1 && (
+                      <small className="pane-count">{tab.panes.length}</small>
+                    )}
+                  </button>
+                  <button
+                    className="tab-close"
+                    aria-label={`Close tab ${name(tab)}`}
+                    onClick={() => closeTab(tab.key)}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
               <button
-                role="tab"
-                aria-selected={active === tab.key}
-                onClick={() => {
-                  if (
-                    !tabOrder.suppress.current &&
-                    !sessionOrder.suppress.current
-                  )
-                    select(tab.key);
-                }}
-                onDoubleClick={() => setAppearance(tab.key)}
-                title={name(tab)}
+                className="icon-button add-tab"
+                onClick={add}
+                disabled={paneCount >= 12}
+                aria-label="New terminal"
+                title="New terminal (⌘ T)"
               >
-                {tab.panes.every((pane) => pane.kind === "utop") ? (
-                  <Activity size={13} />
-                ) : (
-                  <Terminal size={13} />
-                )}
-                <span className="tab-label">{name(tab)}</span>
-                {tab.panes.length > 1 && (
-                  <small className="pane-count">{tab.panes.length}</small>
-                )}
-              </button>
-              <button
-                className="tab-close"
-                aria-label={`Close tab ${name(tab)}`}
-                onClick={() => closeTab(tab.key)}
-              >
-                <X size={12} />
+                <Plus size={17} />
               </button>
             </div>
-          ))}
-          <button
-            className="icon-button add-tab"
-            onClick={add}
-            disabled={paneCount >= 12}
-            aria-label="New terminal"
-            title="New terminal (⌘ T)"
-          >
-            <Plus size={17} />
-          </button>
+          </div>
         </div>
         <div className="terminal-toolbar">
           <span>
@@ -977,6 +1104,41 @@ function App() {
               color,
             }));
             closeAppearance();
+          }}
+        />
+      )}
+      {sessionMenu && tabs.some((tab) => tab.key === sessionMenu.tabId) && (
+        <SessionContextMenu
+          x={sessionMenu.x}
+          y={sessionMenu.y}
+          name={name(tabs.find((tab) => tab.key === sessionMenu.tabId)!)}
+          paneCount={
+            tabs.find((tab) => tab.key === sessionMenu.tabId)!.panes.length
+          }
+          onDismiss={(restoreFocus) => {
+            if (restoreFocus) sessionMenu.trigger.focus();
+            setSessionMenu(null);
+          }}
+          onAppearance={() => {
+            setAppearance(sessionMenu.tabId);
+            setSessionMenu(null);
+          }}
+          onCloseTab={() => {
+            const index = tabs.findIndex(
+              (tab) => tab.key === sessionMenu.tabId,
+            );
+            const remaining = tabs.filter(
+              (tab) => tab.key !== sessionMenu.tabId,
+            );
+            const nextTab =
+              active === sessionMenu.tabId
+                ? remaining[Math.min(index, remaining.length - 1)]
+                : current;
+            closeTab(sessionMenu.tabId);
+            setSessionMenu(null);
+            requestAnimationFrame(() => {
+              if (nextTab) handles.current.get(nextTab.activePane)?.focus();
+            });
           }}
         />
       )}

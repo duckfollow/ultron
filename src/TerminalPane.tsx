@@ -1,7 +1,7 @@
 import { prepareSnippet } from "./snippets-model";
 import { Monitor, Server, RotateCw, Pencil, AlertCircle } from "lucide-react";
 import { sshFailure } from "./ssh-status";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
@@ -64,12 +64,13 @@ export function TerminalPane({
   isActive.current = focused;
   const callbacks = useRef({ register, onReady, onTitle, onExit, onSize });
   callbacks.current = { register, onReady, onTitle, onExit, onSize };
-  useEffect(() => {
+  useLayoutEffect(() => {
     setConnecting(Boolean(profileId));
     setHasOutput(false);
     setFailure(null);
     const startedAt = performance.now();
     let animationTimer: ReturnType<typeof setTimeout> | undefined;
+    let titleTimer: ReturnType<typeof setTimeout> | undefined;
     let outputSeen = false;
     const revealTerminal = () => {
       if (outputSeen) return;
@@ -172,9 +173,15 @@ export function TerminalPane({
           });
       }
     });
-    const title = term.onTitleChange((value) =>
-      callbacks.current.onTitle(value.slice(0, 80)),
-    );
+    // Shell hooks can emit several titles in one burst. Publish the settled
+    // title together instead of briefly showing each intermediate value.
+    const title = term.onTitleChange((value) => {
+      clearTimeout(titleTimer);
+      titleTimer = setTimeout(
+        () => callbacks.current.onTitle(value.slice(0, 80)),
+        100,
+      );
+    });
     const output = new Channel<Output>();
     output.onmessage = (event) => {
       if (disposed) return;
@@ -258,6 +265,7 @@ export function TerminalPane({
     return () => {
       disposed = true;
       clearTimeout(animationTimer);
+      clearTimeout(titleTimer);
       observer.disconnect();
       resize.dispose();
       data.dispose();
@@ -268,20 +276,27 @@ export function TerminalPane({
       if (id) void invoke("close_terminal", { id }).catch(() => {});
     };
   }, [attempt]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!visible) return;
-    const frame = requestAnimationFrame(() => {
-      runtime.current?.fit.fit();
-      if (focused) runtime.current?.term.focus();
-    });
-    return () => cancelAnimationFrame(frame);
+    // Size a newly shown terminal before paint, rather than displaying one frame
+    // at its previous/default dimensions and then clearing it during fit.
+    runtime.current?.fit.fit();
+  }, [visible]);
+  useLayoutEffect(() => {
+    if (visible && focused) runtime.current?.term.focus();
   }, [visible, focused]);
   return (
     <>
       <div
         ref={host}
         className={`terminal-host ${visible ? "active" : ""}`}
-        onPointerDown={onFocus}
+        onPointerDown={(event) => {
+          if (event.button !== 0) return;
+          onFocus();
+          // Restore keyboard input even when this pane is already active and
+          // React's focused prop does not change (for example after using a toolbar).
+          runtime.current?.term.focus();
+        }}
         onFocusCapture={onFocus}
         aria-label="Terminal session"
       />
