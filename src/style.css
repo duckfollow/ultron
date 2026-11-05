@@ -1,12 +1,12 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #dddfe6;
-  background: #101114;
+  color: var(--theme-dddfe6-2d313d);
+  background: var(--theme-101114-f5f6f8);
   font-synthesis: none;
-  color-scheme: dark;
-  --line: #272930;
-  --muted: #747782;
-  --red: #f2747c;
+  color-scheme: light dark;
+  --line: var(--theme-272930-595d6d);
+  --muted: var(--theme-747782-4a4c53);
+  --red: var(--theme-f2747c-931f27);
 }
 * {
   box-sizing: border-box;
@@ -38,13 +38,13 @@ input:focus-visible {
   outline-offset: -2px;
 }
 button:hover:not(:disabled) {
-  color: #fff;
+  color: var(--theme-fff-2e2e2e);
 }
 kbd {
   font:
     10px Menlo,
     monospace;
-  color: #737682;
+  color: var(--theme-737682-4a4c54);
   white-space: nowrap;
 }
 .app {
@@ -55,7 +55,7 @@ kbd {
 aside {
   width: 224px;
   flex-shrink: 0;
-  background: #17181d;
+  background: var(--theme-17181d-eceef2);
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -96,15 +96,15 @@ aside {
   width: 100%;
   justify-content: flex-start;
   padding: 12px 11px;
-  border: 1px solid #533139;
+  border: 1px solid var(--theme-533139-9a5b6a);
   border-radius: 7px;
-  background: #302127;
+  background: var(--theme-302127-f5f1f3);
   font-size: 12px;
-  color: #f7b2b7;
+  color: var(--theme-f7b2b7-931f28);
 }
 .new-session kbd {
   margin-left: auto;
-  color: #b17880;
+  color: var(--theme-b17880-714148);
 }
 .section-label {
   display: flex;
@@ -129,13 +129,13 @@ nav {
   justify-content: flex-start;
   text-align: left;
   border-radius: 6px;
-  color: #9c9faa;
+  color: var(--theme-9c9faa-40424a);
   border: 1px solid transparent;
 }
 .session.selected {
-  border-color: #543039;
-  background: #2c2027;
-  color: #f2c0c5;
+  border-color: var(--theme-543039-9c596a);
+  background: var(--theme-2c2027-f5f2f4);
+  color: var(--theme-f2c0c5-931f2b);
 }
 .session > div {
   min-width: 0;
@@ -159,14 +159,14 @@ nav {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #6b6e79;
+  background: var(--theme-6b6e79-ebebed);
   flex-shrink: 0;
 }
 .state-dot.live {
-  background: #8bcba6;
+  background: var(--theme-8bcba6-cfe9da);
 }
 .state-dot.starting {
-  background: #d2aa6e;
+  background: var(--theme-d2aa6e-efe1cc);
 }
 .sidebar-bottom {
   margin-top: auto;
@@ -184,15 +184,15 @@ nav {
   min-height: 32px;
   padding: 7px 9px;
   border-radius: 6px;
-  color: #9399a8;
+  color: var(--theme-9399a8-3f434e);
   font-size: 11px;
 }
 .sidebar-tools > button:hover {
-  color: #e0e3ec;
-  background: #ffffff08;
+  color: var(--theme-e0e3ec-282e41);
+  background: var(--theme-ffffff08-20263708);
 }
 .sidebar-tools > button:focus-visible {
-  outline: 2px solid #e58c9b;
+  outline: 2px solid var(--theme-e58c9b-b83d52);
   outline-offset: 2px;
 }
 .sidebar-tools .snippets-button {
@@ -220,7 +220,7 @@ nav {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--line);
-  background: #14151a;
+  background: var(--theme-14151a-eceef2);
   font-size: 11px;
 }
 .topbar > div {
@@ -232,7 +232,7 @@ nav {
   color: var(--muted);
 }
 .slash {
-  color: #41434c;
+  color: var(--theme-41434c-555763);
 }
 .topbar strong {
   font-weight: 500;
@@ -241,7 +241,7 @@ nav {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #9b9eaa;
+  color: var(--theme-9b9eaa-3f424b);
   font:
     10px Menlo,
     monospace;
@@ -249,11 +249,11 @@ nav {
 .environment i {
   width: 5px;
   height: 5px;
-  background: #ed8088;
+  background: var(--theme-ed8088-efc6c9);
   border-radius: 50%;
 }
 .environment svg {
-  color: #5a5e69;
+  color: var(--theme-5a5e69-4f525c);
 }
 .tabbar-reveal {
   display: grid;
@@ -281,7 +281,7 @@ nav {
   display: flex;
   min-height: 43px;
   flex-shrink: 0;
-  background: #14151a;
+  background: var(--theme-14151a-eceef2);
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
   scrollbar-width: none;
@@ -296,12 +296,12 @@ nav {
   border-top: 2px solid transparent;
   max-width: 240px;
   flex-shrink: 0;
-  color: #838794;
+  color: var(--theme-838794-454850);
 }
 .tab.active {
-  background: #101114;
+  background: var(--theme-101114-f5f6f8);
   border-top-color: var(--red);
-  color: #dedfe5;
+  color: var(--theme-dedfe5-2f313c);
 }
 .tab > button:first-child {
   font-size: 11px;
@@ -312,7 +312,7 @@ nav {
   text-overflow: ellipsis;
 }
 .tab.active > button:first-child > svg {
-  color: #dd8a93;
+  color: var(--theme-dd8a93-8a2833);
   flex-shrink: 0;
 }
 .tab-close {
@@ -320,20 +320,20 @@ nav {
   width: 24px;
   height: 24px;
   border-radius: 4px;
-  color: #747886;
+  color: var(--theme-747886-494b54);
 }
 .tab-close:hover {
-  background: #282a32;
+  background: var(--theme-282a32-f2f2f4);
 }
 .icon-button {
   width: 27px;
   height: 27px;
   border-radius: 4px;
-  color: #737784;
+  color: var(--theme-737784-494c54);
   flex-shrink: 0;
 }
 .icon-button:hover {
-  background: #252730;
+  background: var(--theme-252730-f2f2f5);
 }
 .add-tab {
   margin: auto 9px;
@@ -346,8 +346,12 @@ nav {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  color: #8f99aa;
-  background: linear-gradient(180deg, #ffffff02, transparent);
+  color: var(--theme-8f99aa-3d4450);
+  background: linear-gradient(
+    180deg,
+    var(--theme-ffffff02-20263702),
+    transparent
+  );
 }
 .terminal-toolbar > span {
   display: flex;
@@ -362,10 +366,10 @@ nav {
   gap: 8px;
   flex-shrink: 0;
   padding: 7px 9px;
-  border: 1px solid #ffffff0d;
+  border: 1px solid var(--theme-ffffff0d-2026370d);
   border-radius: 7px;
-  background: #ffffff03;
-  color: #b2bac8;
+  background: var(--theme-ffffff03-20263703);
+  color: var(--theme-b2bac8-343c49);
   font:
     9px Menlo,
     monospace;
@@ -376,14 +380,14 @@ nav {
   height: 11px;
   flex-shrink: 0;
   border-radius: 2px;
-  background: #ad5a67;
+  background: var(--theme-ad5a67-ebd7da);
 }
 .terminal-toolbar small {
   min-width: 0;
   font:
     11px Menlo,
     monospace;
-  color: #929bad;
+  color: var(--theme-929bad-3c4250);
   letter-spacing: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -403,26 +407,26 @@ nav {
   align-items: center;
   gap: 2px;
   padding: 3px;
-  border: 1px solid #ffffff0b;
+  border: 1px solid var(--theme-ffffff0b-2026370b);
   border-radius: 9px;
-  background: #ffffff03;
+  background: var(--theme-ffffff03-20263703);
 }
 .terminal-tool-group .icon-button {
   width: 30px;
   height: 30px;
   border-radius: 6px;
-  color: #9ca6b6;
+  color: var(--theme-9ca6b6-39414e);
 }
 .terminal-tool-group .icon-button:hover:not(:disabled) {
-  background: #ffffff0b;
-  color: #e0e7ee;
+  background: var(--theme-ffffff0b-2026370b);
+  color: var(--theme-e0e7ee-3f5973);
 }
 .terminal-tool-group .icon-button[aria-pressed="true"] {
-  background: #8ac0aa18;
-  color: #add5c3;
+  background: var(--theme-8ac0aa18-d3e7df18);
+  color: var(--theme-add5c3-3c765c);
 }
 .terminal-tool-group .icon-button:focus-visible {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: -2px;
 }
 .terminal-tool-group .icon-button:disabled {
@@ -431,7 +435,7 @@ nav {
 .terminal-tool-label {
   padding: 0 5px 0 7px;
   font-size: 11px;
-  color: #8993a3;
+  color: var(--theme-8993a3-3f4651);
 }
 @media (max-width: 1000px) {
   .terminal-toolbar {
@@ -487,19 +491,19 @@ nav {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: #202129;
+  background: var(--theme-202129-f2f3f5);
   padding: 6px 8px;
-  border: 1px solid #393b46;
+  border: 1px solid var(--theme-393b46-c4c6cf);
   border-radius: 7px;
-  box-shadow: 0 8px 30px #0005;
-  color: #9296a3;
+  box-shadow: 0 8px 30px var(--theme-0005-0005);
+  color: var(--theme-9296a3-41444d);
 }
 .findbar input {
   width: 185px;
   border: 0;
   outline: 0;
   background: none;
-  color: #dedfe5;
+  color: var(--theme-dedfe5-2f313c);
   font-size: 11px;
   padding: 5px;
 }
@@ -514,8 +518,8 @@ footer {
   font:
     9px Menlo,
     monospace;
-  color: #626672;
-  background: #14151a;
+  color: var(--theme-626672-4d5059);
+  background: var(--theme-14151a-eceef2);
 }
 footer > span {
   display: flex;
@@ -528,8 +532,8 @@ footer > div {
 }
 .error {
   padding: 8px 22px;
-  background: #3b2229;
-  color: #edb3bd;
+  background: var(--theme-3b2229-f1e8ea);
+  color: var(--theme-edb3bd-902235);
   font-size: 11px;
 }
 .empty {
@@ -549,7 +553,7 @@ footer > div {
     9px Menlo,
     monospace;
   letter-spacing: 2px;
-  color: #91616a;
+  color: var(--theme-91616a-5f4046);
 }
 .empty h1 {
   font-size: 32px;
@@ -558,7 +562,7 @@ footer > div {
   margin: 15px 0;
 }
 .empty p {
-  color: #757987;
+  color: var(--theme-757987-494b54);
   font-size: 13px;
   margin: 0 0 30px;
 }
@@ -571,15 +575,15 @@ footer > div {
   z-index: 10;
   display: grid;
   place-items: center;
-  background: #0009;
+  background: var(--theme-0009-0009);
 }
 .help {
-  background: #1a1b22;
-  border: 1px solid #373943;
+  background: var(--theme-1a1b22-f3f3f6);
+  border: 1px solid var(--theme-373943-c4c6cf);
   border-radius: 13px;
   padding: 24px;
   width: 410px;
-  box-shadow: 0 25px 90px #0008;
+  box-shadow: 0 25px 90px var(--theme-0008-0008);
 }
 .help header {
   display: flex;
@@ -599,13 +603,13 @@ footer > div {
   display: flex;
   justify-content: space-between;
   padding: 11px 0;
-  border-bottom: 1px solid #282a32;
+  border-bottom: 1px solid var(--theme-282a32-c3c6cf);
   font-size: 12px;
-  color: #b1b4c1;
+  color: var(--theme-b1b4c1-383b47);
 }
 .help p {
   font-size: 11px;
-  color: #777c89;
+  color: var(--theme-777c89-484b53);
   line-height: 1.7;
   margin: 20px 0 0;
 }
@@ -630,7 +634,7 @@ footer > div {
 }
 
 .help {
-  color: #dddfe6;
+  color: var(--theme-dddfe6-2d313d);
 }
 .help::backdrop {
   background: #0009;
@@ -671,11 +675,11 @@ footer > div {
   justify-content: space-between;
   height: 28px;
   flex-shrink: 0;
-  background: #17181d;
+  background: var(--theme-17181d-eceef2);
   padding: 0 3px 0 7px;
   margin-bottom: 6px;
   border-radius: 3px;
-  color: #767b88;
+  color: var(--theme-767b88-484b53);
 }
 .focused .pane-heading {
   color: var(--tab-color);
@@ -690,7 +694,7 @@ footer > div {
   gap: 8px;
 }
 .pane-focus small {
-  color: #646976;
+  color: var(--theme-646976-4c4f59);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -723,7 +727,7 @@ footer > div {
   cursor: row-resize;
 }
 .pane-divider span {
-  background: #393c47;
+  background: var(--theme-393c47-eff0f2);
   border-radius: 2px;
   pointer-events: none;
 }
@@ -751,11 +755,11 @@ footer > div {
   min-width: 0;
 }
 .tab .pane-count {
-  color: #989dab;
+  color: var(--theme-989dab-3e424c);
   font:
     9px Menlo,
     monospace;
-  background: #292c35;
+  background: var(--theme-292c35-f1f2f4);
   padding: 2px 4px;
   border-radius: 3px;
 }
@@ -767,8 +771,12 @@ footer > div {
 }
 .session.selected {
   border-color: color-mix(in srgb, var(--tab-color) 35%, transparent);
-  background: color-mix(in srgb, var(--tab-color) 10%, #17181d);
-  color: color-mix(in srgb, var(--tab-color) 65%, #fff);
+  background: color-mix(
+    in srgb,
+    var(--tab-color) 10%,
+    var(--theme-17181d-eceef2)
+  );
+  color: color-mix(in srgb, var(--tab-color) 65%, var(--theme-fff-2e2e2e));
 }
 .tab-color-dot {
   width: 6px;
@@ -779,7 +787,7 @@ footer > div {
 }
 .status-line,
 .environment i {
-  background: var(--tab-color, #f2747c);
+  background: var(--tab-color, var(--theme-f2747c-efc7ca));
 }
 .topbar > div {
   min-width: 0;
@@ -797,16 +805,16 @@ footer > div {
 .tab-appearance legend {
   display: block;
   font-size: 11px;
-  color: #b5bac7;
+  color: var(--theme-b5bac7-363a47);
   margin-bottom: 9px;
 }
 .tab-appearance input {
   width: 100%;
-  border: 1px solid #3b3f4c;
+  border: 1px solid var(--theme-3b3f4c-c3c6d0);
   border-radius: 6px;
-  background: #111217;
+  background: var(--theme-111217-ffffff);
   padding: 10px 12px;
-  color: #e4e6ed;
+  color: var(--theme-e4e6ed-292e3e);
   font-size: 13px;
 }
 .tab-appearance p {
@@ -825,11 +833,11 @@ footer > div {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  color: #16171c;
+  color: var(--theme-16171c-5b5f74);
   outline-offset: 3px;
 }
 .tab-colors button[aria-pressed="true"] {
-  outline: 2px solid #eee;
+  outline: 2px solid var(--theme-eee-c9c9c9);
 }
 .dialog-actions {
   display: flex;
@@ -839,14 +847,14 @@ footer > div {
 }
 .subtle-button {
   padding: 8px 12px;
-  color: #9399a8;
+  color: var(--theme-9399a8-3f434e);
   font-size: 12px;
 }
 .save-appearance {
   padding: 8px 19px;
   border-radius: 5px;
-  background: #f2747c;
-  color: #1b1216;
+  background: var(--theme-f2747c-efc7ca);
+  color: var(--theme-1b1216-7d5366);
   font-size: 12px;
   font-weight: 600;
 }
@@ -867,7 +875,7 @@ footer > div {
   height: 22px;
 }
 .ssh-empty {
-  color: #656b78;
+  color: var(--theme-656b78-4b4f59);
   font-size: 10px;
   line-height: 1.7;
   margin: 0 10px 7px;
@@ -889,24 +897,24 @@ footer > div {
 .ssh-profile-row:hover,
 .ssh-profile-row:focus-within,
 .ssh-profile-row.menu-open {
-  background: #20262d;
+  background: var(--theme-20262d-f2f3f5);
 }
 .ssh-profile-row:hover .ssh-profile-more,
 .ssh-profile-row:focus-within .ssh-profile-more,
 .ssh-profile-row.menu-open .ssh-profile-more {
-  color: #c2cbd7;
+  color: var(--theme-c2cbd7-2e3947);
 }
 .ssh-profile {
   flex: 1;
   min-width: 0;
   justify-content: flex-start;
   padding: 10px 8px;
-  color: #a6bcc6;
+  color: var(--theme-a6bcc6-32454e);
   text-align: left;
 }
 .ssh-profile > svg {
   flex-shrink: 0;
-  color: #799cab;
+  color: var(--theme-799cab-38505a);
 }
 .ssh-profile > span {
   font-size: 11px;
@@ -920,7 +928,7 @@ footer > div {
   font:
     9px Menlo,
     monospace;
-  color: #626e7d;
+  color: var(--theme-626e7d-48515c);
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 5px;
@@ -930,19 +938,19 @@ footer > div {
 }
 .ssh-profile:focus-visible,
 .ssh-profile-more:focus-visible {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: -2px;
   border-radius: 5px;
 }
 .ssh-profile-more {
   width: 28px;
   height: 30px;
-  color: #737c89;
+  color: var(--theme-737c89-474d55);
   border-radius: 4px;
   flex-shrink: 0;
 }
 .ssh-profile-more:hover {
-  background: #272d37;
+  background: var(--theme-272d37-f1f2f5);
 }
 .ssh-profile-menu {
   position: fixed;
@@ -950,10 +958,10 @@ footer > div {
   left: 205px;
   width: 196px;
   padding: 5px;
-  background: #202229;
-  border: 1px solid #363b46;
+  background: var(--theme-202229-f2f3f5);
+  border: 1px solid var(--theme-363b46-c3c7d0);
   border-radius: 7px;
-  box-shadow: 0 8px 30px #0008;
+  box-shadow: 0 8px 30px var(--theme-0008-0008);
 }
 .ssh-profile-menu button {
   width: 100%;
@@ -964,21 +972,21 @@ footer > div {
 }
 .ssh-profile-menu button:hover,
 .ssh-profile-menu button:focus-visible {
-  background: #303641;
+  background: var(--theme-303641-f0f1f4);
 }
 .ssh-profile-menu hr {
   border: 0;
-  border-top: 1px solid #343943;
+  border-top: 1px solid var(--theme-343943-c3c7d0);
   margin: 4px;
 }
 .ssh-profile-menu .delete-profile {
-  color: #e5a0a8;
+  color: var(--theme-e5a0a8-8c2632);
 }
 .ssh-list-error {
   font-size: 10px;
   line-height: 1.6;
   margin: 0 9px 12px;
-  color: #ed9eaa;
+  color: var(--theme-ed9eaa-931f31);
 }
 .ssh-dialog {
   width: 440px;
@@ -986,7 +994,7 @@ footer > div {
 .ssh-dialog p.ssh-hint {
   font-size: 10px;
   line-height: 1.7;
-  color: #858b98;
+  color: var(--theme-858b98-444850);
   margin: 14px 0 0;
 }
 .ssh-fields {
@@ -996,18 +1004,18 @@ footer > div {
 }
 .ssh-fields label {
   display: block;
-  color: #b5bac7;
+  color: var(--theme-b5bac7-363a47);
   font-size: 11px;
   margin: 0 0 15px;
 }
 .ssh-fields input {
   display: block;
   width: 100%;
-  border: 1px solid #393f4b;
-  background: #111217;
+  border: 1px solid var(--theme-393f4b-c2c7d1);
+  background: var(--theme-111217-ffffff);
   border-radius: 5px;
   padding: 9px 10px;
-  color: #dfe4ed;
+  color: var(--theme-dfe4ed-405272);
   font-size: 12px;
   margin-top: 7px;
 }
@@ -1023,7 +1031,7 @@ footer > div {
   flex: 0 0 82px;
 }
 .optional {
-  color: #656d7c;
+  color: var(--theme-656d7c-494f5a);
   font-size: 10px;
   margin-left: 5px;
 }
@@ -1040,13 +1048,13 @@ footer > div {
 }
 .ssh-dialog .secondary-action {
   padding: 8px 13px;
-  background: #30343f;
-  border: 1px solid #454d5c;
+  background: var(--theme-30343f-f0f1f4);
+  border: 1px solid var(--theme-454d5c-c2c7d1);
   border-radius: 5px;
   font-size: 12px;
 }
 .form-error {
-  color: #eda0ab !important;
+  color: var(--theme-eda0ab-931f30) !important;
   font-size: 11px !important;
   overflow-wrap: anywhere;
 }
@@ -1142,7 +1150,7 @@ aside nav {
   flex-direction: column;
   padding: 2px;
   margin-bottom: 6px;
-  border: 1px solid #2b3039;
+  border: 1px solid var(--theme-2b3039-c2c7d1);
   border-radius: 8px;
 }
 .sidebar.collapsed .ssh-profile {
@@ -1164,7 +1172,7 @@ aside nav {
   width: 100%;
   height: 22px;
   padding: 0;
-  border-top: 1px solid #303640;
+  border-top: 1px solid var(--theme-303640-c2c8d1);
   border-radius: 0 0 5px 5px;
 }
 .sidebar .ssh-profile-list {
@@ -1198,7 +1206,7 @@ aside nav {
   font:
     8px Menlo,
     monospace;
-  color: #8d94a5;
+  color: var(--theme-8d94a5-3f4450);
 }
 .sidebar.collapsed .tab-color-dot {
   position: absolute;
@@ -1235,11 +1243,11 @@ aside nav {
   height: 36px;
   width: 100%;
   margin-top: 7px;
-  border: 1px solid #393f4b;
+  border: 1px solid var(--theme-393f4b-c2c7d1);
   border-radius: 5px;
   padding: 9px 10px;
-  color: #dfe4ed;
-  background: #111217;
+  color: var(--theme-dfe4ed-405272);
+  background: var(--theme-111217-ffffff);
   font: inherit;
   font-size: 12px;
 }
@@ -1248,7 +1256,7 @@ aside nav {
   outline-offset: -2px;
 }
 .remember-password {
-  border-top: 1px solid #2c323d;
+  border-top: 1px solid var(--theme-2c323d-c1c7d2);
   padding-top: 15px;
   margin-top: 4px;
 }
@@ -1262,18 +1270,18 @@ aside nav {
   display: inline-block;
   width: 14px;
   height: 14px;
-  accent-color: #f2747c;
+  accent-color: var(--theme-f2747c-931f27);
   padding: 0;
   margin: 0;
 }
 .remember-password p {
   font-size: 10px;
   line-height: 1.6;
-  color: #7c8696;
+  color: var(--theme-7c8696-434954);
   margin: 8px 0 0;
 }
 .forget-password {
-  color: #e7a0ab;
+  color: var(--theme-e7a0ab-8e2434);
   font-size: 11px;
   padding: 4px 0;
 }
@@ -1290,15 +1298,15 @@ aside nav {
   justify-content: center;
   gap: 18px;
   pointer-events: none;
-  background: #101114;
-  color: #a8aab5;
+  background: var(--theme-101114-f5f6f8);
+  color: var(--theme-a8aab5-3d3e47);
   font-size: 12px;
 }
 .ssh-route {
   display: flex;
   align-items: center;
   gap: 24px;
-  color: #ed939a;
+  color: var(--theme-ed939a-931f28);
 }
 .ssh-dots {
   display: flex;
@@ -1335,18 +1343,18 @@ aside nav {
   max-height: 65%;
   overflow: auto;
   padding: 16px;
-  border: 1px solid #654047;
+  border: 1px solid var(--theme-654047-d5bdc2);
   border-radius: 12px;
-  background: #211b20;
-  color: #dbd8de;
+  background: var(--theme-211b20-f5f3f5);
+  color: var(--theme-dbd8de-37323b);
   font-size: 12px;
-  box-shadow: 0 8px 24px #0005;
+  box-shadow: 0 8px 24px var(--theme-0005-0005);
 }
 .ssh-failure-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #f598a0;
+  color: var(--theme-f598a0-931f29);
 }
 .ssh-failure-actions {
   display: flex;
@@ -1359,15 +1367,15 @@ aside nav {
   align-items: center;
   gap: 6px;
   padding: 7px 10px;
-  border: 1px solid #564048;
+  border: 1px solid var(--theme-564048-d1c2c7);
   border-radius: 6px;
-  background: #30242b;
-  color: #f0e5ea;
+  background: var(--theme-30242b-f5f1f3);
+  color: var(--theme-f0e5ea-714157);
   cursor: pointer;
 }
 .ssh-failure details summary {
   cursor: pointer;
-  color: #aba4b0;
+  color: var(--theme-aba4b0-443e48);
 }
 .ssh-failure pre {
   white-space: pre-wrap;
@@ -1383,9 +1391,9 @@ aside nav {
   flex-direction: row;
   gap: 12px;
   padding: 9px 12px;
-  border: 1px solid #3f3037;
+  border: 1px solid var(--theme-3f3037-d1c2c9);
   border-radius: 9px;
-  background: #211b20e8;
+  background: var(--theme-211b20e8-f5f3f5e8);
   font-size: 11px;
 }
 .ssh-connecting.compact .ssh-route {
@@ -1413,23 +1421,23 @@ aside nav {
   gap: 5px;
   height: 24px;
   padding: 0 8px;
-  border: 1px solid #343843;
+  border: 1px solid var(--theme-343843-c3c6d0);
   border-radius: 5px;
-  color: #aeb5c4;
-  background: #20232b;
+  color: var(--theme-aeb5c4-353c49);
+  background: var(--theme-20232b-f2f3f5);
   font-size: 10px;
   cursor: pointer;
 }
 .pane-swap-button:hover,
 .pane-swap-button.selected {
-  color: #dfede9;
-  background: #283d39;
-  border-color: #6b9b8c;
+  color: var(--theme-dfede9-407264);
+  background: var(--theme-283d39-f0f5f4);
+  border-color: var(--theme-6b9b8c-bfd4cd);
 }
 .pane-swap-button:focus-visible,
 .pane-swap-target:focus-visible,
 .pane-swap-instruction button:focus-visible {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: 2px;
 }
 .pane-swap-overlay {
@@ -1439,13 +1447,13 @@ aside nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #101114e8;
-  border: 1px dashed #45554f;
+  background: var(--theme-101114e8-f4f5f7e8);
+  border: 1px dashed var(--theme-45554f-c4cfcb);
   border-radius: 6px;
   overflow: auto;
 }
 .pane-swap-overlay.target {
-  background: #15221fe8;
+  background: var(--theme-15221fe8-f2f7f6e8);
 }
 .pane-swap-instruction,
 .pane-swap-target {
@@ -1456,17 +1464,17 @@ aside nav {
   gap: 12px;
   padding: 20px;
   text-align: center;
-  color: #abc4ba;
+  color: var(--theme-abc4ba-354b42);
 }
 .pane-swap-instruction strong,
 .pane-swap-target strong {
-  color: #e0eae6;
+  color: var(--theme-e0eae6-2a3e36);
   font-size: 13px;
   font-weight: 500;
 }
 .pane-swap-instruction > span,
 .pane-swap-target > span {
-  color: #8b9c96;
+  color: var(--theme-8b9c96-434f4a);
   font-size: 11px;
   max-width: 260px;
   overflow: hidden;
@@ -1484,29 +1492,29 @@ aside nav {
 }
 .pane-swap-target:hover,
 .pane-swap-target:focus-visible {
-  background: #28473c88;
+  background: var(--theme-28473c88-e6f0ec88);
   outline-offset: -4px;
 }
 .pane-swap-instruction button {
   margin-top: 6px;
   padding: 6px 10px;
   gap: 10px;
-  color: #bac2cd;
-  border: 1px solid #383e49;
+  color: var(--theme-bac2cd-333b46);
+  border: 1px solid var(--theme-383e49-c2c7d1);
   border-radius: 5px;
-  background: #20232b;
+  background: var(--theme-20232b-f2f3f5);
   font-size: 11px;
 }
 .pane-swap-instruction kbd {
-  color: #79828e;
+  color: var(--theme-79828e-464c53);
   font-size: 10px;
 }
 
 .ssh-fields .remember-password {
   padding: 16px;
-  border: 1px solid #333a45;
+  border: 1px solid var(--theme-333a45-c1c8d1);
   border-radius: 10px;
-  background: #191d24;
+  background: var(--theme-191d24-f2f4f6);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1522,8 +1530,8 @@ aside nav {
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  background: #263b36;
-  color: #9ecdbb;
+  background: var(--theme-263b36-f0f5f4);
+  color: var(--theme-9ecdbb-3d7660);
 }
 .keychain-heading > div,
 .keychain-progress > div {
@@ -1532,12 +1540,12 @@ aside nav {
   gap: 4px;
 }
 .keychain-heading strong {
-  color: #dce2eb;
+  color: var(--theme-dce2eb-415472);
   font-size: 12px;
   font-weight: 500;
 }
 .keychain-heading span:not(.keychain-icon) {
-  color: #8893a4;
+  color: var(--theme-8893a4-3f4652);
   font-size: 11px;
 }
 .keychain-explainer {
@@ -1545,33 +1553,33 @@ aside nav {
   align-items: flex-start;
   gap: 9px;
   padding: 12px;
-  background: #202830;
-  border: 1px solid #35424c;
+  background: var(--theme-202830-f1f3f6);
+  border: 1px solid var(--theme-35424c-c0cbd3);
   border-radius: 7px;
-  color: #9cbece;
+  color: var(--theme-9cbece-3b6477);
 }
 .keychain-explainer > svg {
   flex-shrink: 0;
   margin-top: 1px;
 }
 .keychain-explainer strong {
-  color: #c3d6e0;
+  color: var(--theme-c3d6e0-3d6276);
   font-size: 11px;
   font-weight: 500;
 }
 .ssh-fields .keychain-explainer p {
-  color: #a0abba;
+  color: var(--theme-a0abba-38414d);
   font-size: 11px;
   line-height: 1.6;
   margin: 6px 0 0;
 }
 .keychain-explainer b {
-  color: #d1dbe5;
+  color: var(--theme-d1dbe5-405972);
   font-weight: 500;
 }
 .ssh-fields .keychain-footnote {
   margin: 0;
-  color: #7e8998;
+  color: var(--theme-7e8998-434a53);
   font-size: 10px;
   line-height: 1.6;
 }
@@ -1581,18 +1589,18 @@ aside nav {
   gap: 10px;
   margin-top: 12px;
   padding: 12px;
-  border: 1px solid #354b43;
+  border: 1px solid var(--theme-354b43-c0d3cc);
   border-radius: 8px;
-  background: #1c2b25;
-  color: #9ecdbb;
+  background: var(--theme-1c2b25-f1f6f4);
+  color: var(--theme-9ecdbb-3d7660);
 }
 .keychain-progress strong {
-  color: #c6ded3;
+  color: var(--theme-c6ded3-41715b);
   font-size: 12px;
   font-weight: 500;
 }
 .keychain-progress span {
-  color: #9eafa7;
+  color: var(--theme-9eafa7-3d4b44);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -1620,8 +1628,8 @@ aside nav {
   z-index: 2;
   margin: 16px -24px -24px;
   padding: 14px 24px;
-  background: #1a1b22;
-  border-top: 1px solid #303540;
+  background: var(--theme-1a1b22-f3f3f6);
+  border-top: 1px solid var(--theme-303540-c2c7d1);
 }
 .ssh-fields .remember-password > label {
   margin-bottom: 0;
@@ -1638,24 +1646,32 @@ aside nav {
   padding-right: 0;
   border: 1px solid transparent;
   border-radius: 7px;
-  color: #9c9faa;
+  color: var(--theme-9c9faa-40424a);
   transition:
     background-color 120ms ease,
     border-color 120ms ease;
 }
 .workspace-session-row:hover,
 .workspace-session-row:focus-within {
-  background: #20262d;
+  background: var(--theme-20262d-f2f3f5);
 }
 .workspace-session-row.selected {
   border-color: color-mix(in srgb, var(--tab-color) 35%, transparent);
-  background: color-mix(in srgb, var(--tab-color) 10%, #17181d);
-  color: color-mix(in srgb, var(--tab-color) 65%, #fff);
+  background: color-mix(
+    in srgb,
+    var(--tab-color) 10%,
+    var(--theme-17181d-eceef2)
+  );
+  color: color-mix(in srgb, var(--tab-color) 65%, var(--theme-fff-2e2e2e));
 }
 .workspace-session-row.selected:hover,
 .workspace-session-row.selected:focus-within {
   border-color: color-mix(in srgb, var(--tab-color) 55%, transparent);
-  background: color-mix(in srgb, var(--tab-color) 15%, #17181d);
+  background: color-mix(
+    in srgb,
+    var(--tab-color) 15%,
+    var(--theme-17181d-eceef2)
+  );
 }
 .workspace-session-row .session {
   flex: 1;
@@ -1670,7 +1686,7 @@ aside nav {
   flex-shrink: 0;
 }
 .workspace-session-row .session:focus-visible {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: -2px;
   border-radius: 5px;
 }
@@ -1678,7 +1694,7 @@ aside nav {
   flex-direction: column;
   padding: 2px;
   margin: 0 0 6px;
-  border-color: #2b3039;
+  border-color: var(--theme-2b3039-c2c7d1);
   border-radius: 8px;
 }
 .sidebar.collapsed .workspace-session-row.selected {
@@ -1710,13 +1726,13 @@ aside nav {
   width: 100%;
   min-width: 0;
   padding: 8px 5px;
-  color: #9299aa;
+  color: var(--theme-9299aa-3d434f);
   border-radius: 5px;
   text-align: left;
 }
 .ssh-group-toggle:hover {
-  background: #ffffff08;
-  color: #d4d7e1;
+  background: var(--theme-ffffff08-20263708);
+  color: var(--theme-d4d7e1-2d3241);
 }
 .ssh-group-toggle > svg {
   flex-shrink: 0;
@@ -1730,14 +1746,14 @@ aside nav {
 .ssh-group-toggle > small {
   margin-left: auto;
   font-size: 9px;
-  color: #767f90;
+  color: var(--theme-767f90-454a55);
 }
 .ssh-group-toggle:focus-visible {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: -2px;
 }
 .ssh-group-hint {
-  color: #8c95a5;
+  color: var(--theme-8c95a5-3f4550);
   font-size: 10px;
   font-weight: 400;
   line-height: 1.6;
@@ -1751,14 +1767,14 @@ aside nav {
   border-radius: 7px;
 }
 .ssh-group.drop-target {
-  border-color: #e889a1;
-  background: #e889a114;
-  box-shadow: 0 0 0 1px #e889a133;
+  border-color: var(--theme-e889a1-b83d5c);
+  background: var(--theme-e889a114-eec6d014);
+  box-shadow: 0 0 0 1px var(--theme-e889a133-e889a133);
 }
 .ssh-group-toggle > em {
   font-style: normal;
   font-size: 9px;
-  color: #f2b1c4;
+  color: var(--theme-f2b1c4-931f41);
   white-space: nowrap;
 }
 .ssh-group.drop-target .ssh-group-toggle > small {
@@ -1772,7 +1788,7 @@ aside nav {
   opacity: 0.4;
 }
 .ssh-drag-grip {
-  color: #727a8d !important;
+  color: var(--theme-727a8d-464a56) !important;
   opacity: 0;
 }
 .ssh-profile-row:hover .ssh-drag-grip,
@@ -1785,16 +1801,16 @@ aside nav {
   bottom: 24px;
   z-index: 100;
   width: min(360px, calc(100vw - 48px));
-  box-shadow: 0 12px 36px #0007;
+  box-shadow: 0 12px 36px var(--theme-0007-0007);
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 14px;
   margin: 0;
-  border: 1px solid #394b44;
+  border: 1px solid var(--theme-394b44-c2d1cb);
   border-radius: 10px;
-  color: #d4ddd8;
-  background: #1d2623;
+  color: var(--theme-d4ddd8-313e37);
+  background: var(--theme-1d2623-f3f5f4);
   font-size: 11px;
   line-height: 1.6;
 }
@@ -1806,7 +1822,7 @@ aside nav {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #f0b0c3;
+  color: var(--theme-f0b0c3-931f42);
   padding: 4px;
 }
 
@@ -1822,13 +1838,13 @@ aside nav {
 .ssh-move-label input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #4b4352;
+  border: 1px solid var(--theme-4b4352-cac4cf);
   border-radius: 6px;
-  color: #e4dce6;
-  background: #14151b;
+  color: var(--theme-e4dce6-3b2d3e);
+  background: var(--theme-14151b-f4f4f6);
 }
 .ssh-move-dialog small {
-  color: #9298a7;
+  color: var(--theme-9298a7-3f434e);
   font-size: 10px;
 }
 
@@ -1844,7 +1860,7 @@ aside nav {
   width: 16px;
   flex-shrink: 0;
   padding: 0;
-  color: #697386;
+  color: var(--theme-697386-464d59);
   cursor: grab;
   opacity: 0.5;
   touch-action: none;
@@ -1852,7 +1868,7 @@ aside nav {
 .ssh-group-heading:hover .ssh-group-grip,
 .ssh-group-grip:focus-visible {
   opacity: 1;
-  color: #e1a3b5;
+  color: var(--theme-e1a3b5-872c46);
 }
 .ssh-group-heading .ssh-group-toggle {
   flex: 1;
@@ -1873,8 +1889,8 @@ aside nav {
   left: 0;
   right: 0;
   height: 2px;
-  background: #f090aa;
-  box-shadow: 0 0 6px #f090aa66;
+  background: var(--theme-f090aa-eec5d0);
+  box-shadow: 0 0 6px var(--theme-f090aa66-f090aa66);
   z-index: 5;
   pointer-events: none;
 }
@@ -1908,27 +1924,27 @@ aside nav {
 .ssh-toast-icon {
   display: flex;
   align-items: center;
-  color: #97c9b0;
+  color: var(--theme-97c9b0-3d7559);
   flex-shrink: 0;
 }
 .ssh-move-feedback.is-error {
-  background: #302129;
-  border-color: #69414f;
-  color: #efc6d1;
+  background: var(--theme-302129-f5f1f3);
+  border-color: var(--theme-69414f-d6bdc6);
+  color: var(--theme-efc6d1-8b2742);
 }
 .ssh-move-feedback.is-error .ssh-toast-icon {
-  color: #ed94ad;
+  color: var(--theme-ed94ad-931f40);
 }
 .ssh-move-feedback.is-busy {
-  background: #23252d;
-  border-color: #414553;
-  color: #c8ccd9;
+  background: var(--theme-23252d-f2f2f5);
+  border-color: var(--theme-414553-c3c6d0);
+  color: var(--theme-c8ccd9-2f3444);
 }
 .ssh-move-feedback .ssh-toast-undo {
-  border: 1px solid #56675e;
+  border: 1px solid var(--theme-56675e-c5cec9);
   border-radius: 5px;
   padding: 5px 8px;
-  color: #c7e1d3;
+  color: var(--theme-c7e1d3-3e7457);
   font-size: 10px;
   white-space: nowrap;
 }
@@ -1936,17 +1952,17 @@ aside nav {
   width: 26px;
   height: 26px;
   flex-shrink: 0;
-  color: #9baaa3;
+  color: var(--theme-9baaa3-3f4b45);
 }
 .ssh-move-feedback button:focus-visible {
-  outline: 2px solid #a1cfb7;
+  outline: 2px solid var(--theme-a1cfb7-53a279);
   outline-offset: 3px;
 }
 
 /* Project folders share a connection picker in both sidebar sizes. */
 .ssh-project-button.active {
-  background: #8ac0aa16;
-  color: #b6d8ca;
+  background: var(--theme-8ac0aa16-d3e7df16);
+  color: var(--theme-b6d8ca-3e745e);
 }
 .ssh-project-button > span {
   flex: 1;
@@ -1954,7 +1970,7 @@ aside nav {
 .ssh-project-button > span > small {
   display: block;
   margin-top: 4px;
-  color: #8ac0aa;
+  color: var(--theme-8ac0aa-3e745e);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1972,13 +1988,13 @@ aside nav {
   max-height: calc(100dvh - 48px);
   padding: 0;
   overflow: auto;
-  border: 1px solid #ffffff14;
+  border: 1px solid var(--theme-ffffff14-20263714);
   border-radius: 18px;
-  background: #1b1d24;
-  color: #d5d9e3;
+  background: var(--theme-1b1d24-f7f8fa);
+  color: var(--theme-d5d9e3-2c3242);
   box-shadow:
-    0 32px 100px #0009,
-    0 1px 0 #ffffff08 inset;
+    0 32px 100px var(--theme-0009-0009),
+    0 1px 0 var(--theme-ffffff08-ffffff08) inset;
 }
 .ssh-picker::backdrop {
   background: #080a10b8;
@@ -1991,7 +2007,11 @@ aside nav {
   align-items: center;
   gap: 13px;
   padding: 24px 28px 20px;
-  background: linear-gradient(125deg, #8ac0aa08, transparent 70%);
+  background: linear-gradient(
+    125deg,
+    var(--theme-8ac0aa08-d3e7df08),
+    transparent 70%
+  );
 }
 .ssh-picker-folder {
   display: flex;
@@ -2000,10 +2020,10 @@ aside nav {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  border: 1px solid #8ac0aa26;
+  border: 1px solid var(--theme-8ac0aa26-569f8126);
   border-radius: 12px;
-  background: #8ac0aa10;
-  color: #a3cdbb;
+  background: var(--theme-8ac0aa10-d3e7df10);
+  color: var(--theme-a3cdbb-3f745d);
 }
 .ssh-picker-heading {
   flex: 1;
@@ -2012,7 +2032,7 @@ aside nav {
 .ssh-picker-eyebrow {
   display: block;
   margin: 0 0 5px;
-  color: #8e98a8;
+  color: var(--theme-8e98a8-3e4550);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.2px;
@@ -2034,25 +2054,25 @@ aside nav {
 .ssh-picker h2 .icon-button {
   width: 28px;
   height: 28px;
-  color: #8c96a6;
+  color: var(--theme-8c96a6-3e4550);
   flex-shrink: 0;
   border-radius: 7px;
 }
 .ssh-picker .icon-button:hover {
-  background: #ffffff0a;
-  color: #d8e5df;
+  background: var(--theme-ffffff0a-2026370a);
+  color: var(--theme-d8e5df-2b4137);
 }
 .ssh-picker > header > .icon-button {
   width: 30px;
   height: 30px;
-  color: #858e9e;
+  color: var(--theme-858e9e-414752);
   flex-shrink: 0;
   border-radius: 8px;
 }
 .ssh-picker header p {
   margin: 4px 0 0;
   font-size: 11px;
-  color: #929bad;
+  color: var(--theme-929bad-3c4250);
   line-height: 1.5;
 }
 .ssh-picker-search {
@@ -2061,14 +2081,14 @@ aside nav {
   gap: 10px;
   margin: 0 28px 24px;
   padding: 13px 14px;
-  border: 1px solid #ffffff12;
+  border: 1px solid var(--theme-ffffff12-20263712);
   border-radius: 10px;
-  background: #11131980;
-  color: #7e8999;
+  background: var(--theme-11131980-f3f4f780);
+  color: var(--theme-7e8999-424954);
 }
 .ssh-picker-search:focus-within {
-  border-color: #8ac0aa70;
-  box-shadow: 0 0 0 3px #8ac0aa08;
+  border-color: var(--theme-8ac0aa70-569f8170);
+  box-shadow: 0 0 0 3px var(--theme-8ac0aa08-8ac0aa08);
 }
 .ssh-picker-search input {
   width: 100%;
@@ -2077,12 +2097,12 @@ aside nav {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #e1e5ed;
+  color: var(--theme-e1e5ed-435270);
   font: inherit;
   font-size: 13px;
 }
 .ssh-picker-search input::placeholder {
-  color: #788291;
+  color: var(--theme-788291-454b54);
 }
 .ssh-picker-list-label {
   display: flex;
@@ -2092,11 +2112,11 @@ aside nav {
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 1.2px;
-  color: #8791a1;
+  color: var(--theme-8791a1-404751);
 }
 .ssh-picker-list-label > span:last-child {
   padding: 3px 7px;
-  background: #ffffff06;
+  background: var(--theme-ffffff06-20263706);
   border-radius: 5px;
   font-size: 10px;
   letter-spacing: 0;
@@ -2111,19 +2131,19 @@ aside nav {
   display: flex;
   align-items: center;
   margin: 6px 0;
-  border: 1px solid #ffffff08;
+  border: 1px solid var(--theme-ffffff08-20263708);
   border-radius: 11px;
   min-height: 76px;
-  background: #ffffff02;
+  background: var(--theme-ffffff02-20263702);
 }
 .ssh-picker .ssh-profile-row:hover,
 .ssh-picker .ssh-profile-row:focus-within {
-  background: #ffffff06;
-  border-color: #ffffff18;
+  background: var(--theme-ffffff06-20263706);
+  border-color: var(--theme-ffffff18-20263718);
 }
 .ssh-picker .ssh-profile-row.is-current {
-  background: #8ac0aa08;
-  border-color: #8ac0aa28;
+  background: var(--theme-8ac0aa08-d3e7df08);
+  border-color: var(--theme-8ac0aa28-569f8128);
 }
 .ssh-picker .ssh-profile {
   flex: 1;
@@ -2139,16 +2159,16 @@ aside nav {
   justify-content: center;
   width: 38px;
   height: 38px;
-  border: 1px solid #ffffff0b;
+  border: 1px solid var(--theme-ffffff0b-2026370b);
   border-radius: 10px;
-  background: #242932;
-  color: #98afc1;
+  background: var(--theme-242932-f1f2f5);
+  color: var(--theme-98afc1-324553);
   flex-shrink: 0;
 }
 .ssh-picker .is-current .ssh-picker-server {
-  color: #a3cdbb;
-  background: #8ac0aa10;
-  border-color: #8ac0aa18;
+  color: var(--theme-a3cdbb-3f745d);
+  background: var(--theme-8ac0aa10-d3e7df10);
+  border-color: var(--theme-8ac0aa18-569f8118);
 }
 .ssh-picker .ssh-profile > .ssh-picker-connection-name {
   font-size: 14px;
@@ -2158,7 +2178,7 @@ aside nav {
 .ssh-picker .ssh-profile small {
   margin-top: 5px;
   font-size: 11px;
-  color: #8b96a6;
+  color: var(--theme-8b96a6-3e4651);
   font-weight: 400;
 }
 .ssh-picker .ssh-drag-grip {
@@ -2169,12 +2189,12 @@ aside nav {
   width: 30px;
   height: 32px;
   margin-right: 10px;
-  color: #8993a3;
+  color: var(--theme-8993a3-3f4651);
   border-radius: 7px;
 }
 .ssh-picker-connect-arrow {
   flex-shrink: 0;
-  color: #9bb4a8;
+  color: var(--theme-9bb4a8-3a4d44);
   opacity: 0;
   margin-right: 10px;
 }
@@ -2188,8 +2208,8 @@ aside nav {
   gap: 4px;
   padding: 4px 7px;
   border-radius: 5px;
-  background: #8ac0aa12;
-  color: #a3cdbb;
+  background: var(--theme-8ac0aa12-d3e7df12);
+  color: var(--theme-a3cdbb-3f745d);
   font-size: 10px;
   white-space: nowrap;
   margin-right: 8px;
@@ -2203,20 +2223,20 @@ aside nav {
   justify-content: space-between;
   gap: 12px;
   padding: 16px 28px;
-  border-top: 1px solid #ffffff09;
-  background: #14161c50;
+  border-top: 1px solid var(--theme-ffffff09-20263709);
+  background: var(--theme-14161c50-f3f4f750);
   font-size: 11px;
-  color: #929bad;
+  color: var(--theme-929bad-3c4250);
 }
 .ssh-picker-footer-hint {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #7f8999;
+  color: var(--theme-7f8999-424953);
 }
 .ssh-picker-footer-hint kbd {
   padding: 3px 5px;
-  border: 1px solid #ffffff12;
+  border: 1px solid var(--theme-ffffff12-20263712);
   border-radius: 4px;
   font-size: 10px;
 }
@@ -2225,25 +2245,25 @@ aside nav {
   align-items: center;
   gap: 6px;
   padding: 9px 12px;
-  border: 1px solid #8ac0aa28;
+  border: 1px solid var(--theme-8ac0aa28-569f8128);
   border-radius: 8px;
-  background: #8ac0aa10;
-  color: #b6d8ca;
+  background: var(--theme-8ac0aa10-d3e7df10);
+  color: var(--theme-b6d8ca-3e745e);
   font-size: 12px;
 }
 .ssh-picker > footer button:hover {
-  background: #8ac0aa20;
+  background: var(--theme-8ac0aa20-d3e7df20);
 }
 .ssh-picker-empty,
 .ssh-picker-hint {
   padding: 28px 24px;
   text-align: center;
-  color: #929bad;
+  color: var(--theme-929bad-3c4250);
   font-size: 12px;
   line-height: 1.7;
 }
 .ssh-picker button:focus-visible {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: -2px;
 }
 @media (max-width: 480px) {
@@ -2290,14 +2310,14 @@ aside nav {
 .ssh-folder-rename {
   margin: 0 28px 22px;
   padding: 16px;
-  background: #11131960;
-  border: 1px solid #ffffff0d;
+  background: var(--theme-11131960-f3f4f760);
+  border: 1px solid var(--theme-ffffff0d-2026370d);
   border-radius: 10px;
 }
 .ssh-folder-rename > label {
   display: block;
   margin-bottom: 8px;
-  color: #929bad;
+  color: var(--theme-929bad-3c4250);
   font-size: 12px;
 }
 .ssh-folder-rename > div {
@@ -2307,29 +2327,29 @@ aside nav {
 .ssh-folder-rename input {
   flex: 1;
   min-width: 0;
-  border: 1px solid #3b4150;
+  border: 1px solid var(--theme-3b4150-c1c6d2);
   border-radius: 6px;
   padding: 9px 10px;
-  background: #14161c;
-  color: #e1e5ed;
+  background: var(--theme-14161c-f3f4f7);
+  color: var(--theme-e1e5ed-435270);
 }
 .ssh-folder-rename input:focus-visible {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: -2px;
 }
 .ssh-folder-rename button {
-  border: 1px solid #3b4150;
+  border: 1px solid var(--theme-3b4150-c1c6d2);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 12px;
 }
 .ssh-folder-rename button[type="submit"] {
-  background: #8ac0aa20;
-  color: #b6d8ca;
+  background: var(--theme-8ac0aa20-d3e7df20);
+  color: var(--theme-b6d8ca-3e745e);
 }
 .ssh-folder-rename > p {
   margin: 8px 0 0;
-  color: #f2a0ab;
+  color: var(--theme-f2a0ab-931f2f);
   font-size: 12px;
 }
 
@@ -2338,7 +2358,7 @@ aside nav {
   align-items: baseline;
   gap: 7px;
   min-width: 0;
-  color: #929bad;
+  color: var(--theme-929bad-3c4250);
 }
 .ssh-status-address {
   display: inline-block;
@@ -2346,10 +2366,10 @@ aside nav {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #a2abba;
+  color: var(--theme-a2abba-38404c);
 }
 .ssh-status-address strong {
-  color: #92ceef;
+  color: var(--theme-92ceef-1f6a93);
   font-weight: 600;
 }
 
@@ -2357,7 +2377,12 @@ aside nav {
 .sidebar:not(.collapsed) {
   width: 240px;
   padding: 24px 14px 14px;
-  background: linear-gradient(180deg, #1a1b23 0%, #17181f 220px, #17181d 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-1a1b23-f3f3f6) 0%,
+    var(--theme-17181f-f3f3f6) 220px,
+    var(--theme-17181d-eceef2) 100%
+  );
 }
 .sidebar:not(.collapsed) .sidebar-top {
   margin: 0 0 24px;
@@ -2375,7 +2400,7 @@ aside nav {
 }
 .sidebar:not(.collapsed) .brand small {
   margin-top: 5px;
-  color: #8991a0;
+  color: var(--theme-8991a0-414650);
   font-size: 6px;
   letter-spacing: 1.1px;
 }
@@ -2386,22 +2411,26 @@ aside nav {
 .sidebar:not(.collapsed) .new-session {
   min-height: 44px;
   padding: 11px 13px;
-  border: 1px solid #f2747c38;
+  border: 1px solid var(--theme-f2747c38-b83d4538);
   border-radius: 10px;
-  background: linear-gradient(115deg, #f2747c1c, #f2747c0b);
-  color: #f4b1b9;
+  background: linear-gradient(
+    115deg,
+    var(--theme-f2747c1c-efc7ca1c),
+    var(--theme-f2747c0b-efc7ca0b)
+  );
+  color: var(--theme-f4b1b9-931f2d);
   font-size: 12px;
   font-weight: 500;
-  box-shadow: 0 1px 0 #ffffff04 inset;
+  box-shadow: 0 1px 0 var(--theme-ffffff04-ffffff04) inset;
 }
 .sidebar:not(.collapsed) .new-session:hover:not(:disabled) {
-  border-color: #f2747c70;
-  background: #f2747c22;
-  color: #ffd4d8;
+  border-color: var(--theme-f2747c70-b83d4570);
+  background: var(--theme-f2747c22-efc7ca22);
+  color: var(--theme-ffd4d8-931f2a);
 }
 .sidebar:not(.collapsed) .new-session kbd {
   font-size: 9px;
-  color: #c18d96;
+  color: var(--theme-c18d96-743f48);
   font-weight: 400;
 }
 .sidebar:not(.collapsed) .section-label {
@@ -2410,7 +2439,7 @@ aside nav {
   font-family: inherit;
   font-size: 9px;
   font-weight: 600;
-  color: #8e98a9;
+  color: var(--theme-8e98a9-3d4450);
 }
 .sidebar:not(.collapsed) .section-label > span:first-child {
   letter-spacing: 1.2px;
@@ -2425,26 +2454,26 @@ aside nav {
 .sidebar:not(.collapsed) .ssh-connections .section-label .icon-button {
   width: 25px;
   height: 25px;
-  border: 1px solid #ffffff0b;
+  border: 1px solid var(--theme-ffffff0b-2026370b);
   border-radius: 6px;
-  background: #ffffff03;
-  color: #a3adbd;
+  background: var(--theme-ffffff03-20263703);
+  color: var(--theme-a3adbd-373f4c);
 }
 .sidebar:not(.collapsed) .ssh-connections .section-label .icon-button:hover {
-  color: #c2ddcf;
-  background: #8ac0aa16;
-  border-color: #8ac0aa30;
+  color: var(--theme-c2ddcf-407358);
+  background: var(--theme-8ac0aa16-d3e7df16);
+  border-color: var(--theme-8ac0aa30-569f8130);
 }
 .sidebar:not(.collapsed) .ssh-group {
   position: relative;
   margin: 5px 0;
-  background: #ffffff02;
-  border: 1px solid #ffffff08;
+  background: var(--theme-ffffff02-20263702);
+  border: 1px solid var(--theme-ffffff08-20263708);
   border-radius: 10px;
 }
 .sidebar:not(.collapsed) .ssh-group:hover {
-  border-color: #ffffff18;
-  background: #ffffff04;
+  border-color: var(--theme-ffffff18-20263718);
+  background: var(--theme-ffffff04-20263704);
 }
 .sidebar:not(.collapsed) .ssh-group-heading {
   min-height: 53px;
@@ -2462,16 +2491,16 @@ aside nav {
   padding: 8px 10px 8px 2px;
   gap: 10px;
   border-radius: 9px;
-  color: #b5becd;
+  color: var(--theme-b5becd-323a49);
 }
 .sidebar:not(.collapsed) .ssh-project-button > svg {
   width: 30px;
   height: 30px;
   padding: 7px;
-  background: #879bb510;
-  border: 1px solid #879bb515;
+  background: var(--theme-879bb510-e2e7ed10);
+  border: 1px solid var(--theme-879bb515-bdc8d615);
   border-radius: 8px;
-  color: #9eb2c8;
+  color: var(--theme-9eb2c8-415872);
 }
 .sidebar:not(.collapsed) .ssh-project-button > span {
   font-size: 12px;
@@ -2482,20 +2511,20 @@ aside nav {
   min-width: 21px;
   padding: 3px 5px;
   border-radius: 5px;
-  background: #ffffff05;
-  color: #919bac;
+  background: var(--theme-ffffff05-20263705);
+  color: var(--theme-919bac-3c4350);
   font-size: 9px;
   font-weight: 500;
   text-align: center;
 }
 .sidebar:not(.collapsed) .ssh-project-button.active {
-  color: #c1dece;
-  background: #8ac0aa0c;
+  color: var(--theme-c1dece-3e7456);
+  background: var(--theme-8ac0aa0c-d3e7df0c);
 }
 .sidebar:not(.collapsed) .ssh-project-button.active > svg {
-  color: #b2d6c4;
-  background: #8ac0aa14;
-  border-color: #8ac0aa20;
+  color: var(--theme-b2d6c4-3e7459);
+  background: var(--theme-8ac0aa14-d3e7df14);
+  border-color: var(--theme-8ac0aa20-569f8120);
 }
 .sidebar-workspace-empty {
   display: flex;
@@ -2504,18 +2533,18 @@ aside nav {
   gap: 9px;
   margin: 2px 2px 12px;
   padding: 22px 10px;
-  border: 1px dashed #ffffff0d;
+  border: 1px dashed var(--theme-ffffff0d-2026370d);
   border-radius: 10px;
-  color: #717d8f;
+  color: var(--theme-717d8f-444c57);
 }
 .sidebar-workspace-empty > span {
   font-size: 11px;
-  color: #949eae;
+  color: var(--theme-949eae-3c434f);
 }
 .sidebar-workspace-empty > small {
   font-size: 9px;
   line-height: 1.5;
-  color: #778294;
+  color: var(--theme-778294-434a55);
   text-align: center;
 }
 .sidebar:not(.collapsed) .sidebar-bottom {
@@ -2523,8 +2552,8 @@ aside nav {
 }
 .sidebar:not(.collapsed) .sidebar-tools {
   padding: 4px;
-  background: #ffffff03;
-  border: 1px solid #ffffff08;
+  background: var(--theme-ffffff03-20263703);
+  border: 1px solid var(--theme-ffffff08-20263708);
   border-radius: 10px;
 }
 .sidebar:not(.collapsed) .sidebar-tools > button {
@@ -2539,7 +2568,7 @@ aside nav {
 .sidebar:not(.collapsed) .update-nav-button {
   padding: 10px 11px;
   border-radius: 9px;
-  color: #8e98a9;
+  color: var(--theme-8e98a9-3d4450);
 }
 .sidebar:not(.collapsed) .update-nav-version {
   max-width: 104px;
@@ -2547,7 +2576,7 @@ aside nav {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 8px;
-  color: #717e90;
+  color: var(--theme-717e90-444c57);
 }
 @media (max-width: 900px) {
   .sidebar:not(.collapsed) {
@@ -2570,10 +2599,10 @@ aside nav {
   flex-shrink: 0;
   white-space: nowrap;
   padding: 5px 7px;
-  border: 1px solid #ffffff12;
+  border: 1px solid var(--theme-ffffff12-20263712);
   border-radius: 6px;
-  color: #a3adbd;
-  background: #ffffff04;
+  color: var(--theme-a3adbd-373f4c);
+  background: var(--theme-ffffff04-20263704);
   font:
     10px -apple-system,
     BlinkMacSystemFont,
@@ -2582,22 +2611,22 @@ aside nav {
   letter-spacing: 0;
 }
 .connection-state.live {
-  color: #b1d8c3;
-  border-color: #8ac0aa25;
-  background: #8ac0aa0b;
+  color: var(--theme-b1d8c3-3b7757);
+  border-color: var(--theme-8ac0aa25-569f8125);
+  background: var(--theme-8ac0aa0b-d3e7df0b);
 }
 .connection-state.starting {
-  color: #e0c28b;
-  border-color: #d2aa6e30;
-  background: #d2aa6e0c;
+  color: var(--theme-e0c28b-8d6826);
+  border-color: var(--theme-d2aa6e30-b8873d30);
+  background: var(--theme-d2aa6e0c-efe1cc0c);
 }
 .connection-state.ended {
-  color: #e7a5af;
-  border-color: #e58c9b28;
-  background: #e58c9b0b;
+  color: var(--theme-e7a5af-8d2635);
+  border-color: var(--theme-e58c9b28-b83d5228);
+  background: var(--theme-e58c9b0b-eec6cd0b);
 }
 .state-dot.ended {
-  background: #e58c9b;
+  background: var(--theme-e58c9b-eec6cd);
 }
 .ssh-picker .connection-state {
   margin-right: 8px;
@@ -2629,10 +2658,10 @@ aside nav {
   z-index: 100;
   width: min(240px, calc(100vw - 16px));
   padding: 6px;
-  border: 1px solid #363b46;
+  border: 1px solid var(--theme-363b46-c3c7d0);
   border-radius: 8px;
-  background: #1b1e25;
-  box-shadow: 0 10px 30px #0006;
+  background: var(--theme-1b1e25-f2f3f6);
+  box-shadow: 0 10px 30px var(--theme-0006-0006);
 }
 .session-context-name {
   display: block;
@@ -2640,7 +2669,7 @@ aside nav {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #9b9eaa;
+  color: var(--theme-9b9eaa-3f424b);
   font-size: 11px;
 }
 .session-context-menu button {
@@ -2653,10 +2682,10 @@ aside nav {
 }
 .session-context-menu button:hover,
 .session-context-menu button:focus-visible {
-  background: #2b303a;
+  background: var(--theme-2b303a-f0f2f4);
 }
 .session-context-close {
-  color: #f27881;
+  color: var(--theme-f27881-931f28);
 }
 
 /* Keep the workspace attached to the sidebar throughout the size change. */
@@ -2741,10 +2770,10 @@ aside nav {
 .ssh-form-subtitle {
   margin: -4px 0 22px;
   font-size: 12px;
-  color: #939cab;
+  color: var(--theme-939cab-3d444f);
 }
 .ssh-form-section + .ssh-form-section {
-  border-top: 1px solid #303540;
+  border-top: 1px solid var(--theme-303540-c2c7d1);
   padding-top: 20px;
   margin-top: 6px;
 }
@@ -2752,7 +2781,7 @@ aside nav {
   margin: 0 0 16px;
   font-size: 13px;
   font-weight: 500;
-  color: #e0e4ec;
+  color: var(--theme-e0e4ec-283041);
 }
 .ssh-form-basics {
   display: grid;
@@ -2769,41 +2798,41 @@ aside nav {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  border: 1px solid #393f4b;
+  border: 1px solid var(--theme-393f4b-c2c7d1);
   border-radius: 8px;
   padding: 12px 10px;
   margin: 0;
   cursor: pointer;
-  background: #181b22;
+  background: var(--theme-181b22-f3f4f6);
 }
 .ssh-auth-option.selected {
-  border-color: #8ac0aa;
-  background: #8ac0aa0c;
+  border-color: var(--theme-8ac0aa-569f81);
+  background: var(--theme-8ac0aa0c-d3e7df0c);
 }
 .ssh-fields .ssh-auth-option input {
   width: 13px;
   flex-shrink: 0;
   margin: 3px 0 0;
-  accent-color: #8ac0aa;
+  accent-color: var(--theme-8ac0aa-3e745e);
 }
 .ssh-auth-option strong {
   display: block;
   font-size: 12px;
   font-weight: 500;
-  color: #e0e4ec;
+  color: var(--theme-e0e4ec-283041);
 }
 .ssh-auth-option small {
   display: block;
   margin-top: 5px;
   line-height: 1.5;
-  color: #9aa5b5;
+  color: var(--theme-9aa5b5-39424e);
   font-size: 11px;
 }
 .keychain-help summary {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #abb7c7;
+  color: var(--theme-abb7c7-333e4c);
   cursor: pointer;
   font-size: 11px;
 }
@@ -2814,8 +2843,8 @@ aside nav {
   position: sticky;
   bottom: -24px;
   padding: 14px 0 0;
-  background: #1a1b22;
-  border-top: 1px solid #303540;
+  background: var(--theme-1a1b22-f3f3f6);
+  border-top: 1px solid var(--theme-303540-c2c7d1);
   z-index: 2;
 }
 .ssh-row-actions {
@@ -2827,11 +2856,11 @@ aside nav {
 .ssh-row-actions .icon-button {
   width: 30px;
   height: 32px;
-  color: #a9b4c3;
+  color: var(--theme-a9b4c3-353e4c);
   border-radius: 6px;
 }
 .ssh-row-actions .icon-button:hover {
-  background: #ffffff0a;
+  background: var(--theme-ffffff0a-2026370a);
 }
 .ssh-details-dialog {
   width: min(560px, calc(100vw - 32px));
@@ -2844,7 +2873,7 @@ aside nav {
   overflow-wrap: anywhere;
 }
 .ssh-detail-intro > span {
-  color: #939cab;
+  color: var(--theme-939cab-3d444f);
   font-size: 12px;
 }
 .ssh-detail-list {
@@ -2856,11 +2885,11 @@ aside nav {
   gap: 10px;
   align-items: center;
   padding: 11px 0;
-  border-bottom: 1px solid #303540;
+  border-bottom: 1px solid var(--theme-303540-c2c7d1);
   font-size: 12px;
 }
 .ssh-detail-row dt {
-  color: #939cab;
+  color: var(--theme-939cab-3d444f);
 }
 .ssh-detail-row dd {
   margin: 0;
@@ -2872,7 +2901,7 @@ aside nav {
   gap: 4px;
 }
 .ssh-detail-status {
-  color: #a1b5ad;
+  color: var(--theme-a1b5ad-3b4b44);
   font-size: 11px;
   line-height: 1.6;
 }
@@ -2900,12 +2929,12 @@ aside nav {
 .ssh-dialog,
 .ssh-details-dialog,
 .ssh-picker {
-  border: 1px solid #343842;
+  border: 1px solid var(--theme-343842-c3c7d0);
   border-radius: 16px;
-  background: #191b21;
+  background: var(--theme-191b21-f7f8fa);
   box-shadow:
-    0 28px 90px #0009,
-    0 1px 0 #ffffff06 inset;
+    0 28px 90px var(--theme-0009-0009),
+    0 1px 0 var(--theme-ffffff06-ffffff06) inset;
   scrollbar-width: none;
 }
 .ssh-dialog::-webkit-scrollbar,
@@ -2939,9 +2968,9 @@ aside nav {
   height: 48px;
   flex-shrink: 0;
   border-radius: 13px;
-  background: #f2747c0c;
-  border: 1px solid #f2747c29;
-  color: #f1959c;
+  background: var(--theme-f2747c0c-efc7ca0c);
+  border: 1px solid var(--theme-f2747c29-b83d4529);
+  color: var(--theme-f1959c-931f28);
 }
 .ssh-dialog-heading {
   flex: 1;
@@ -2951,7 +2980,7 @@ aside nav {
   display: block;
   font-size: 9px;
   letter-spacing: 1.5px;
-  color: #9a8d97;
+  color: var(--theme-9a8d97-4d444b);
   margin-bottom: 5px;
 }
 .ssh-dialog-heading h2 {
@@ -2963,7 +2992,7 @@ aside nav {
 .ssh-dialog form > header > .icon-button {
   align-self: flex-start;
   border-radius: 8px;
-  color: #9aa3b2;
+  color: var(--theme-9aa3b2-3b424d);
 }
 .ssh-dialog .ssh-form-subtitle {
   margin: 16px 26px 22px;
@@ -2986,60 +3015,60 @@ aside nav {
   font:
     10px Menlo,
     monospace;
-  color: #ac8d97;
+  color: var(--theme-ac8d97-523b43);
 }
 .ssh-section-heading h3 {
   margin: 0;
   font-size: 12px;
-  color: #d4d9e3;
+  color: var(--theme-d4d9e3-2b3342);
 }
 .ssh-form-section + .ssh-form-section {
-  border-color: #ffffff0b;
+  border-color: var(--theme-ffffff0b-2026370b);
   margin-top: 2px;
 }
 .ssh-fields label {
-  color: #b9c0cc;
+  color: var(--theme-b9c0cc-333b47);
 }
 .ssh-fields input:not([type="checkbox"]):not([type="radio"]) {
   min-height: 40px;
-  background: #121419;
-  border-color: #323742;
+  background: var(--theme-121419-ffffff);
+  border-color: var(--theme-323742-c2c7d1);
   border-radius: 7px;
   transition: border-color 120ms ease;
 }
 .ssh-fields input::placeholder {
-  color: #6e7888;
+  color: var(--theme-6e7888-474d57);
 }
 .ssh-fields input:hover:not(:disabled) {
-  border-color: #505968;
+  border-color: var(--theme-505968-c2c8d0);
 }
 .ssh-fields input:focus-visible {
-  border-color: #e58c9b;
-  outline: 2px solid #e58c9b25;
+  border-color: var(--theme-e58c9b-b83d52);
+  outline: 2px solid var(--theme-e58c9b25-b83d5225);
   outline-offset: 1px;
 }
 .ssh-fields .ssh-auth-option {
   min-height: 76px;
   padding: 13px 10px;
-  border-color: #353a45;
+  border-color: var(--theme-353a45-c2c7d0);
   border-radius: 9px;
   transition:
     background-color 120ms ease,
     border-color 120ms ease;
 }
 .ssh-fields .ssh-auth-option:hover {
-  border-color: #72707b;
+  border-color: var(--theme-72707b-c8c7cc);
 }
 .ssh-fields .ssh-auth-option.selected {
-  background: #f2747c0a;
-  border-color: #cf7e8d;
+  background: var(--theme-f2747c0a-efc7ca0a);
+  border-color: var(--theme-cf7e8d-b24257);
 }
 .ssh-fields .ssh-auth-option input {
-  accent-color: #e58c9b;
+  accent-color: var(--theme-e58c9b-922134);
 }
 .ssh-fields .remember-password {
-  background: #15181e;
-  border: 1px solid #303640;
+  background: var(--theme-15181e-f3f4f7);
+  border: 1px solid var(--theme-303640-c2c8d1);
   border-radius: 10px;
 }
 .ssh-dialog .ssh-hint,
@@ -3051,7 +3080,7 @@ aside nav {
 .ssh-dialog p.ssh-hint {
   padding: 12px 14px;
   border-radius: 8px;
-  background: #ffffff03;
+  background: var(--theme-ffffff03-20263703);
   font-size: 11px;
   line-height: 1.6;
 }
@@ -3059,8 +3088,8 @@ aside nav {
   position: static;
   margin: 0;
   padding: 16px 26px;
-  background: #16181e;
-  border-top: 1px solid #30343e;
+  background: var(--theme-16181e-eceef2);
+  border-top: 1px solid var(--theme-30343e-c3c7d0);
   gap: 8px;
 }
 .ssh-dialog .dialog-actions > button {
@@ -3077,12 +3106,12 @@ aside nav {
 }
 .ssh-picker > header {
   padding: 26px 26px 22px;
-  background: #191b21;
+  background: var(--theme-191b21-f7f8fa);
 }
 .ssh-picker-folder {
-  background: #f2747c0b;
-  border-color: #f2747c25;
-  color: #eea0ad;
+  background: var(--theme-f2747c0b-efc7ca0b);
+  border-color: var(--theme-f2747c25-b83d4525);
+  color: var(--theme-eea0ad-931f33);
   width: 48px;
   height: 48px;
   border-radius: 13px;
@@ -3093,8 +3122,8 @@ aside nav {
 }
 .ssh-picker-search {
   margin: 0 26px 22px;
-  border-color: #343a46;
-  background: #121419;
+  border-color: var(--theme-343a46-c2c7d1);
+  background: var(--theme-121419-ffffff);
   border-radius: 8px;
   padding: 12px;
 }
@@ -3110,20 +3139,20 @@ aside nav {
 .ssh-picker .ssh-profile-row {
   min-height: 88px;
   border-radius: 10px;
-  background: #1d2027;
-  border-color: #30353f;
+  background: var(--theme-1d2027-f2f3f6);
+  border-color: var(--theme-30353f-c2c7d1);
   padding-right: 8px;
   gap: 2px;
   margin: 8px 0;
 }
 .ssh-picker .ssh-profile-row:hover,
 .ssh-picker .ssh-profile-row:focus-within {
-  background: #242932;
-  border-color: #4b5565;
+  background: var(--theme-242932-f1f2f5);
+  border-color: var(--theme-4b5565-c2c8d1);
 }
 .ssh-picker .ssh-profile-row.is-current {
-  background: #8ac0aa08;
-  border-color: #8ac0aa40;
+  background: var(--theme-8ac0aa08-d3e7df08);
+  border-color: var(--theme-8ac0aa40-569f8140);
 }
 .ssh-picker .ssh-profile {
   padding-top: 14px;
@@ -3146,11 +3175,11 @@ aside nav {
   margin-top: 8px;
   font-size: 10px;
   font-weight: 400;
-  color: #9da7b7;
+  color: var(--theme-9da7b7-39414d);
 }
 .ssh-auth-badge {
-  color: #adb7c7;
-  background: #ffffff06;
+  color: var(--theme-adb7c7-333c4b);
+  background: var(--theme-ffffff06-20263706);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -3165,30 +3194,30 @@ aside nav {
 .ssh-picker .ssh-row-actions {
   gap: 4px;
   padding-left: 10px;
-  border-left: 1px solid #ffffff0b;
+  border-left: 1px solid var(--theme-ffffff0b-2026370b);
 }
 .ssh-picker .ssh-row-action,
 .ssh-picker .ssh-profile-more {
   width: 32px;
   height: 32px;
   border-radius: 7px;
-  color: #a8b2c2;
+  color: var(--theme-a8b2c2-353e4c);
 }
 .ssh-picker .ssh-profile-more {
   margin: 0 0 0 2px;
 }
 .ssh-picker footer {
-  background: #16181e;
-  border-top: 1px solid #30343e;
+  background: var(--theme-16181e-eceef2);
+  border-top: 1px solid var(--theme-30343e-c3c7d0);
 }
 .ssh-picker footer > button {
-  background: #f2747c12;
-  border: 1px solid #f2747c35;
-  color: #f3adb7;
+  background: var(--theme-f2747c12-efc7ca12);
+  border: 1px solid var(--theme-f2747c35-b83d4535);
+  color: var(--theme-f3adb7-931f30);
   border-radius: 7px;
 }
 .ssh-details-dialog .ssh-detail-row {
-  border-bottom-color: #ffffff0a;
+  border-bottom-color: var(--theme-ffffff0a-2026370a);
 }
 @media (max-width: 540px) {
   .ssh-dialog .ssh-fields {
@@ -3222,17 +3251,17 @@ aside nav {
   width: max-content;
   max-width: calc(100vw - 32px);
   padding: 12px 16px;
-  border: 1px solid #8ac0aa50;
+  border: 1px solid var(--theme-8ac0aa50-569f8150);
   border-radius: 10px;
-  background: #222e29;
-  color: #d8eee2;
-  box-shadow: 0 8px 28px #0006;
+  background: var(--theme-222e29-f2f5f4);
+  color: var(--theme-d8eee2-367c56);
+  box-shadow: 0 8px 28px var(--theme-0006-0006);
   font-size: 12px;
   pointer-events: none;
   animation: ssh-copy-toast-enter 140ms ease-out;
 }
 .ssh-copy-toast > svg {
-  color: #a0d5ad;
+  color: var(--theme-a0d5ad-377c48);
   flex-shrink: 0;
 }
 @keyframes ssh-copy-toast-enter {

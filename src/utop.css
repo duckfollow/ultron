@@ -3,13 +3,13 @@
   inset: 0;
   overflow: auto;
   padding: 18px 22px 24px;
-  color: #c9cdd6;
-  background: #101114;
+  color: var(--theme-c9cdd6-323742);
+  background: var(--theme-101114-f5f6f8);
   font:
     11px/1.5 Menlo,
     Monaco,
     monospace;
-  scrollbar-color: #353844 transparent;
+  scrollbar-color: var(--theme-353844-c3c5d0) transparent;
 }
 .utop[hidden] {
   display: none;
@@ -39,25 +39,25 @@
   font-size: 26px;
   letter-spacing: -2px;
   font-weight: 700;
-  color: #ee939e;
+  color: var(--theme-ee939e-931f2d);
 }
 .utop-wordmark > span {
-  color: #d8dae1;
+  color: var(--theme-d8dae1-2f333e);
 }
 .utop-wordmark svg {
   margin-left: 10px;
 }
 .utop-local {
-  border: 1px solid #374b45;
-  background: #192823;
-  color: #92c9b2;
+  border: 1px solid var(--theme-374b45-c1d2cd);
+  background: var(--theme-192823-f2f7f5);
+  color: var(--theme-92c9b2-3b775e);
   border-radius: 4px;
   padding: 3px 6px;
   font-size: 8px;
   letter-spacing: 1px;
 }
 .utop-host {
-  color: #868b99;
+  color: var(--theme-868b99-434750);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -65,37 +65,37 @@
 }
 .utop-controls {
   gap: 8px;
-  color: #969caa;
+  color: var(--theme-969caa-3e434d);
 }
 .utop select {
-  background: #1c1f26;
-  border: 1px solid #343945;
+  background: var(--theme-1c1f26-f2f3f6);
+  border: 1px solid var(--theme-343945-c2c6d1);
   border-radius: 4px;
   padding: 4px 6px;
-  color: #d0d4de;
+  color: var(--theme-d0d4de-2e3442);
   max-width: 140px;
 }
 .utop-controls button,
 .utop-error button {
   padding: 5px 8px;
-  border: 1px solid #343945;
+  border: 1px solid var(--theme-343945-c2c6d1);
   border-radius: 4px;
-  background: #1c1f26;
+  background: var(--theme-1c1f26-f2f3f6);
 }
 .utop-system-line {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
   padding-bottom: 20px;
-  color: #686f80;
+  color: var(--theme-686f80-484d59);
   font-size: 9px;
 }
 .utop-system-line > span:last-child {
   margin-left: auto;
-  color: #8cc9ad;
+  color: var(--theme-8cc9ad-39795c);
 }
 .utop-system-line > .utop-stale {
-  color: #d7b573 !important;
+  color: var(--theme-d7b573-8b6928) !important;
 }
 .utop-layout {
   display: grid;
@@ -107,12 +107,12 @@
   align-items: stretch;
 }
 .utop-panel {
-  --utop-color: #a9a0cf;
-  border: 1px solid #3c3d48;
+  --utop-color: var(--theme-a9a0cf-473c77);
+  border: 1px solid var(--theme-3c3d48-c5c5ce);
   border-radius: 7px;
   padding: 0 14px 12px;
   min-width: 0;
-  background: #121419;
+  background: var(--theme-121419-ffffff);
 }
 .utop-panel > h3 {
   display: flex;
@@ -124,7 +124,7 @@
   top: -10px;
   padding: 0 7px;
   margin: 0 0 0 -4px;
-  background: #101114;
+  background: var(--theme-101114-f5f6f8);
   color: var(--utop-color);
   font-size: 12px;
   line-height: 18px;
@@ -132,20 +132,20 @@
   letter-spacing: 1px;
 }
 .utop-cpu {
-  --utop-color: #e38d9a;
+  --utop-color: var(--theme-e38d9a-8f2334);
 }
 .utop-memory {
-  --utop-color: #87b9cc;
+  --utop-color: var(--theme-87b9cc-35697d);
   grid-column: 1;
   grid-row: 2;
 }
 .utop-network {
-  --utop-color: #c9b47a;
+  --utop-color: var(--theme-c9b47a-7f6b34);
   grid-column: 2;
   grid-row: 2;
 }
 .utop-disks {
-  --utop-color: #8ac0aa;
+  --utop-color: var(--theme-8ac0aa-3e745e);
   grid-column: 1 / 3;
   grid-row: 3;
 }
@@ -185,11 +185,11 @@
 }
 .utop-metric b {
   font-weight: 500;
-  color: #adb3c0;
+  color: var(--theme-adb3c0-383d48);
   overflow-wrap: anywhere;
 }
 .utop-metric > div > span {
-  color: #646e7c;
+  color: var(--theme-646e7c-49505a);
   font-size: 9px;
 }
 .utop-graph {
@@ -200,7 +200,7 @@
   overflow: visible;
 }
 .utop-grid-line {
-  stroke: #252a34;
+  stroke: var(--theme-252a34-525d73);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 2 5;
@@ -210,7 +210,7 @@
   justify-content: space-between;
   margin-top: 4px;
   font-size: 8px;
-  color: #5e6877;
+  color: var(--theme-5e6877-49515d);
 }
 .utop-cores {
   display: grid;
@@ -225,18 +225,18 @@
   font-size: 9px;
 }
 .utop-cores > div > span {
-  color: #687183;
+  color: var(--theme-687183-474d59);
 }
 .utop-cores b {
   width: 30px;
   text-align: right;
   font-weight: 400;
-  color: #aab1bf;
+  color: var(--theme-aab1bf-373d4a);
 }
 .utop-meter {
   flex: 1;
   height: 5px;
-  background: #252831;
+  background: var(--theme-252831-f1f2f5);
   overflow: hidden;
   border-radius: 1px;
 }
@@ -256,13 +256,13 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: space-between;
-  color: #667080;
+  color: var(--theme-667080-484f5a);
   font-size: 8px;
   margin-top: 11px;
 }
 .utop-panel-note b {
   font-weight: 400;
-  color: #9ca4b3;
+  color: var(--theme-9ca4b3-3b414d);
 }
 .utop-memory > .utop-graph {
   height: 30px;
@@ -280,7 +280,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #858e9d;
+  color: var(--theme-858e9d-414751);
 }
 .utop-key-value b {
   font-weight: 400;
@@ -293,7 +293,7 @@
   justify-content: space-between;
   gap: 6px;
   margin-bottom: 9px;
-  color: #6f7785;
+  color: var(--theme-6f7785-484d56);
   font-size: 9px;
 }
 .utop-interface label {
@@ -305,7 +305,7 @@
   height: 30px;
 }
 .utop-upload {
-  color: #8aa8cf;
+  color: var(--theme-8aa8cf-34547f);
 }
 .utop-upload .utop-graph {
   color: inherit;
@@ -325,11 +325,11 @@
   justify-content: space-between;
   gap: 7px;
   font-size: 9px;
-  color: #7f8c90;
+  color: var(--theme-7f8c90-464f51);
   margin: 5px 0;
 }
 .utop-disk strong {
-  color: #adb9b9;
+  color: var(--theme-adb9b9-3c4646);
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -352,7 +352,7 @@
   flex-wrap: wrap;
   gap: 8px;
   margin: 0 0 12px;
-  color: #758092;
+  color: var(--theme-758092-444b56);
   font-size: 9px;
 }
 .utop-process-tools label {
@@ -360,7 +360,7 @@
   align-items: center;
   gap: 7px;
   padding: 5px 7px;
-  border: 1px solid #303743;
+  border: 1px solid var(--theme-303743-c1c7d2);
   border-radius: 4px;
 }
 .utop-process-tools input {
@@ -369,7 +369,7 @@
   background: transparent;
   border: 0;
   outline: none;
-  color: #c9cdd6;
+  color: var(--theme-c9cdd6-323742);
 }
 .utop-process-table {
   flex: 1;
@@ -396,7 +396,7 @@
   flex-shrink: 0;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  background: #20222e;
+  background: var(--theme-20222e-f1f2f6);
 }
 .utop-process-table tbody {
   display: block;
@@ -414,11 +414,11 @@
 .utop-process-table th {
   display: flex;
   align-items: center;
-  background: #20222e;
+  background: var(--theme-20222e-f1f2f6);
   text-align: left;
   font-size: 9px;
   font-weight: 400;
-  color: #b1a7ce;
+  color: var(--theme-b1a7ce-4d4073);
 }
 .utop-process-table th button {
   padding: 7px 0;
@@ -434,21 +434,21 @@
   white-space: nowrap;
 }
 .utop-process-table tbody tr:nth-child(even) {
-  background: #171920;
+  background: var(--theme-171920-f3f4f6);
 }
 .utop-process-table tbody tr:hover {
-  background: #252330;
+  background: var(--theme-252330-f2f1f5);
 }
 .utop-process-table td:first-child,
 .utop-process-table td:last-child {
-  color: #6e7889;
+  color: var(--theme-6e7889-464d57);
 }
 .utop-process-table .utop-hot {
-  color: #e99da7;
+  color: var(--theme-e99da7-922130);
 }
 .utop-no-processes,
 .utop-loading {
-  color: #727d8e;
+  color: var(--theme-727d8e-454c56);
   padding: 15px 0;
 }
 .utop-error {
@@ -458,9 +458,9 @@
   gap: 15px;
   padding: 10px 12px;
   margin-bottom: 20px;
-  border: 1px solid #654148;
+  border: 1px solid var(--theme-654148-d5bec2);
   border-radius: 5px;
-  color: #ec9ba6;
+  color: var(--theme-ec9ba6-931f2f);
 }
 .topbar .topbar-actions {
   display: flex;
@@ -471,14 +471,14 @@
 .utop-toggle {
   width: 30px;
   height: 30px;
-  color: #8caa9d;
+  color: var(--theme-8caa9d-3c5248);
   border: 1px solid transparent;
   border-radius: 5px;
 }
 .utop-toggle.active {
-  background: #20302a;
-  border-color: #496457;
-  color: #b2deca;
+  background: var(--theme-20302a-f1f6f4);
+  border-color: var(--theme-496457-c1d2ca);
+  color: var(--theme-b2deca-367d5c);
 }
 .terminal-toolbar[hidden] {
   display: none;
@@ -603,15 +603,15 @@
   top: calc(100% + 8px);
   width: 220px;
   padding: 6px;
-  background: #1c1e25;
-  border: 1px solid #383d48;
+  background: var(--theme-1c1e25-f3f3f6);
+  border: 1px solid var(--theme-383d48-c3c7d0);
   border-radius: 7px;
-  box-shadow: 0 12px 36px #0008;
+  box-shadow: 0 12px 36px var(--theme-0008-0008);
 }
 .utop-open-menu > small {
   display: block;
   padding: 7px 9px;
-  color: #7f9f90;
+  color: var(--theme-7f9f90-3f544b);
   font:
     8px Menlo,
     monospace;
@@ -626,22 +626,22 @@
   padding: 10px;
   border-radius: 4px;
   font-size: 11px;
-  color: #c2c9d2;
+  color: var(--theme-c2c9d2-323a44);
 }
 .utop-open-menu > button:hover,
 .utop-open-menu > button:focus-visible {
-  background: #2a2e38;
+  background: var(--theme-2a2e38-f1f2f4);
 }
 .pane-drag-grip {
   flex-shrink: 0;
-  color: #657080;
+  color: var(--theme-657080-474f5b);
   cursor: grab;
 }
 .pane-heading[draggable="true"] {
   cursor: grab;
 }
 .pane-frame.pane-drop-target {
-  outline: 2px solid #8ac0aa;
+  outline: 2px solid var(--theme-8ac0aa-569f81);
   outline-offset: -3px;
 }
 @container utop-pane (max-width: 759px) {

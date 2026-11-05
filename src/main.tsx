@@ -1,3 +1,5 @@
+import { AppearanceSettings } from "./AppearanceSettings";
+import { initializeTheme } from "./theme";
 import { reorderRelative } from "./order-model";
 import { useOrderDrag } from "./useOrderDrag";
 import { UtopMenu } from "./UtopMenu";
@@ -63,6 +65,9 @@ import { SplitWorkspace } from "./SplitWorkspace";
 import { TabAppearance } from "./TabAppearance";
 import { SessionContextMenu } from "./SessionContextMenu";
 import "./style.css";
+import "./theme.css";
+import "./theme-palette.css";
+initializeTheme();
 const firstTab = makeTab(1);
 function App() {
   const [sessionMenu, setSessionMenu] = useState<{
@@ -179,7 +184,9 @@ function App() {
   const colorValue = (tab: Tab) =>
     colors.find((c) => c.id === tab.color)!.value;
   const tabStyle = (tab: Tab) =>
-    ({ "--tab-color": colorValue(tab) }) as CSSProperties;
+    ({
+      "--tab-color": `var(--tab-${tab.color}, ${colorValue(tab)})`,
+    }) as CSSProperties;
   const name = (tab: Tab) =>
     tab.panes.every((pane) => pane.kind === "utop") && !tab.customName
       ? "Utop"
@@ -610,6 +617,7 @@ function App() {
               <CircleHelp size={15} />
             </button>
           </div>
+          <AppearanceSettings />
           <UpdateNotice />
         </div>
       </aside>
@@ -652,7 +660,7 @@ function App() {
                 <path d="M9 3v18" stroke="currentColor" strokeWidth={1.5} />
                 <path
                   d="M4.5 8h2M4.5 12h2M4.5 16h2"
-                  stroke="#14151a"
+                  stroke="var(--topbar-background)"
                   strokeWidth={1.5}
                   strokeLinecap="round"
                 />

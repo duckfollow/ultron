@@ -1,3 +1,5 @@
+import { getResolvedTheme, useAppearance } from "./theme";
+import { terminalThemes } from "./theme-model";
 import { prepareSnippet } from "./snippets-model";
 import { Monitor, Server, RotateCw, Pencil, AlertCircle } from "lucide-react";
 import { sshFailure } from "./ssh-status";
@@ -51,6 +53,7 @@ export function TerminalPane({
   onExit: (error?: string) => void;
   onSize: (cols: number, rows: number) => void;
 }) {
+  const { resolved } = useAppearance();
   const [attempt, setAttempt] = useState(0);
   const [connecting, setConnecting] = useState(Boolean(profileId));
   const [hasOutput, setHasOutput] = useState(false);
@@ -97,28 +100,7 @@ export function TerminalPane({
       lineHeight: 1.35,
       scrollback: 10000,
       allowProposedApi: false,
-      theme: {
-        background: "#101114",
-        foreground: "#e2e3e7",
-        cursor: "#ff686b",
-        selectionBackground: "#5e333c",
-        black: "#25262d",
-        red: "#f27881",
-        green: "#a0d5ad",
-        yellow: "#e8ca91",
-        blue: "#91b5ef",
-        magenta: "#c2a1e4",
-        cyan: "#8dced1",
-        white: "#d4d6df",
-        brightBlack: "#747887",
-        brightRed: "#ff9aa2",
-        brightGreen: "#b6efc2",
-        brightYellow: "#ffe0a7",
-        brightBlue: "#b6d2ff",
-        brightMagenta: "#dfbfff",
-        brightCyan: "#b6eeee",
-        brightWhite: "#ffffff",
-      },
+      theme: terminalThemes[getResolvedTheme()],
     });
     const fit = new FitAddon(),
       search = new SearchAddon();
@@ -276,6 +258,10 @@ export function TerminalPane({
       if (id) void invoke("close_terminal", { id }).catch(() => {});
     };
   }, [attempt]);
+  useLayoutEffect(() => {
+    if (runtime.current)
+      runtime.current.term.options.theme = terminalThemes[resolved];
+  }, [resolved]);
   useLayoutEffect(() => {
     if (!visible) return;
     // Size a newly shown terminal before paint, rather than displaying one frame
