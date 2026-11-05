@@ -111,6 +111,8 @@ Authentication and new host-key verification happen in the terminal. OpenSSH che
 
 **Remember password** is optional and off by default. Saved login passwords live in macOS Keychain, with no paid service or subscription. Use **Forget password** to remove one. Changing the server, port, or username requires a new password. Rejected saved passwords are removed before asking again. OTP / 2FA codes and key passphrases are always entered manually and never stored. Automatic filling only applies to OpenSSH’s exact login-password prompt; generic keyboard-interactive prompts remain manual. macOS may request Keychain access permission.
 
+New/Edit SSH forms group server details and sign-in settings separately. In a **Connection folder**, use **View** to inspect a connection or **Copy address** to copy its username, host, and port. The details dialog provides per-field copying and an Edit shortcut. Password eye/copy controls work for entered values and passwords saved in Keychain; a saved password is read only when Show or Copy is chosen, and macOS may request access. SSH key copy controls copy the file path, not private key contents. Successful copies show a brief toast and checkmark without including secret values.
+
 `npm run test:keychain` additionally checks saved-password sign-in, rejected-password retry, and manual OTP with disposable credentials in the local macOS Keychain.
 
 SCP/SFTP file-transfer controls are not part of this milestone. Sessions remain transient; saved SSH profiles survive app restarts.

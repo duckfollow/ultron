@@ -36,6 +36,11 @@ pub fn has(profile: &Profile) -> Result<bool, String> {
         Err(_) => Err("Unable to access the saved password in macOS Keychain".into()),
     }
 }
+pub fn reveal(profile: &Profile) -> Result<String, String> {
+    entry(&account(profile))?
+        .get_password()
+        .map_err(|_| "Unable to read the saved SSH password from macOS Keychain".into())
+}
 fn confirmation_prompt(prompt: &str, hint: &str) -> bool {
     // OpenSSH's host-key question uses RP_ECHO but does not set the confirm hint.
     // Match its question explicitly so passwords and OTPs stay hidden.

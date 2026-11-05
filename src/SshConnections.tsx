@@ -1,5 +1,7 @@
+import { CopyToast } from "./CopyToast";
 import { createPortal } from "react-dom";
 import { ConnectionToast } from "./ConnectionToast";
+import { SshConnectionDetails } from "./SshConnectionDetails";
 import { reorderRelative } from "./order-model";
 import { useOrderDrag } from "./useOrderDrag";
 import { useEffect, useRef, useState } from "react";
@@ -16,6 +18,8 @@ import {
   Folder,
   FolderInput,
   GripVertical,
+  Eye,
+  Copy,
 } from "lucide-react";
 import {
   profileAddress,
@@ -60,6 +64,31 @@ export function SshConnections({
     [deleting, setDeleting] = useState<SshProfile | null>(null),
     [deleteError, setDeleteError] = useState(""),
     [busy, setBusy] = useState(false);
+  const [viewProfile, setViewProfile] = useState<SshProfile | null>(null);
+  const [copyNotice, setCopyNotice] = useState("");
+  const [copyError, setCopyError] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const viewTrigger = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (!copiedId) return;
+    const timer = setTimeout(() => {
+      setCopiedId(null);
+      setCopyNotice("");
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [copiedId]);
+  async function copyAddress(profile: SshProfile) {
+    setCopyError("");
+    setCopyNotice("");
+    setCopiedId(null);
+    try {
+      await navigator.clipboard.writeText(profileAddress(profile));
+      setCopiedId(profile.id);
+      setCopyNotice("Connection address copied");
+    } catch {
+      setCopyError("Unable to copy the connection address. Please try again.");
+    }
+  }
   const [groupOrder, setGroupOrder] = useState<string[]>(() => {
     try {
       const value: unknown = JSON.parse(
@@ -556,7 +585,7 @@ export function SshConnections({
                   setQuery(event.target.value);
                   setMenu(null);
                 }}
-                placeholder="Search connections or host…"
+                placeholder="Find a server by name or host…"
                 aria-label="Search connections"
               />
             </label>
@@ -602,7 +631,7 @@ export function SshConnections({
                               moving ||
                               event.button !== 0 ||
                               (event.target as HTMLElement).closest(
-                                ".ssh-profile-more, .ssh-profile-menu",
+                                ".ssh-profile-more, .ssh-profile-menu, .ssh-row-action",
                               )
                             )
                               return;
@@ -766,6 +795,38 @@ export function SshConnections({
                             <span className="ssh-picker-connection-name">
                               {profile.name}
                               <small>{profileAddress(profile)}</small>
+                              <span className="ssh-connection-meta">
+                                <span className="ssh-auth-badge">
+                                  {profile.authMethod === "password"
+                                    ? "Password"
+                                    : profile.authMethod === "key"
+                                      ? "SSH key"
+                                      : "Auto"}
+                                </span>
+                                {profileStates[profile.id] && (
+                                  <span
+                                    className={`connection-state ${profileStates[profile.id]}`}
+                                  >
+                                    <i
+                                      className={`state-dot ${profileStates[profile.id]}`}
+                                      aria-hidden="true"
+                                    />
+                                    {profileStates[profile.id] === "live"
+                                      ? "Session active"
+                                      : profileStates[profile.id] === "starting"
+                                        ? "Connecting"
+                                        : "Disconnected"}
+                                  </span>
+                                )}
+                                {activeProfileId === profile.id && (
+                                  <span className="ssh-current">
+                                    <Check size={13} />
+                                    <span className="ssh-current-label">
+                                      Current
+                                    </span>
+                                  </span>
+                                )}
+                              </span>
                             </span>
                           </button>
                           <ArrowUpRight
@@ -773,27 +834,34 @@ export function SshConnections({
                             size={16}
                             aria-hidden="true"
                           />
-                          {profileStates[profile.id] && (
-                            <span
-                              className={`connection-state ${profileStates[profile.id]}`}
+                          <div className="ssh-row-actions">
+                            <button
+                              type="button"
+                              className="ssh-row-action icon-button"
+                              aria-label={`View connection ${profile.name}`}
+                              title="View connection details"
+                              onClick={(event) => {
+                                viewTrigger.current = event.currentTarget;
+                                setMenu(null);
+                                setViewProfile(profile);
+                              }}
                             >
-                              <i
-                                className={`state-dot ${profileStates[profile.id]}`}
-                                aria-hidden="true"
-                              />
-                              {profileStates[profile.id] === "live"
-                                ? "Session active"
-                                : profileStates[profile.id] === "starting"
-                                  ? "Connecting"
-                                  : "Disconnected"}
-                            </span>
-                          )}
-                          {activeProfileId === profile.id && (
-                            <span className="ssh-current">
-                              <Check size={13} />
-                              <span className="ssh-current-label">Current</span>
-                            </span>
-                          )}
+                              <Eye size={15} />
+                            </button>
+                            <button
+                              type="button"
+                              className="ssh-row-action icon-button"
+                              aria-label={`Copy address for ${profile.name}`}
+                              title="Copy connection address"
+                              onClick={() => void copyAddress(profile)}
+                            >
+                              {copiedId === profile.id ? (
+                                <Check size={15} />
+                              ) : (
+                                <Copy size={15} />
+                              )}
+                            </button>
+                          </div>
                           <button
                             className="ssh-profile-more"
                             aria-label={`Manage SSH connection ${profile.name}`}
@@ -937,6 +1005,12 @@ export function SshConnections({
                 </p>
               )}
             </div>
+            {copyNotice && <CopyToast message={copyNotice} />}
+            {copyError && (
+              <p className="form-error" role="alert">
+                {copyError}
+              </p>
+            )}
             <footer inert={renameBusy}>
               <span className="ssh-picker-footer-hint">
                 <kbd>esc</kbd> to close
@@ -951,6 +1025,23 @@ export function SshConnections({
               </button>
             </footer>
           </dialog>,
+          document.body,
+        )}
+      {viewProfile &&
+        createPortal(
+          <SshConnectionDetails
+            key={viewProfile.id}
+            profile={viewProfile}
+            onClose={() => {
+              setViewProfile(null);
+              requestAnimationFrame(() => viewTrigger.current?.focus());
+            }}
+            onEdit={() => {
+              setViewProfile(null);
+              closePicker();
+              onEdit(viewProfile);
+            }}
+          />,
           document.body,
         )}
       {(moveNotice || moveError || moving) && !moveProfile && (

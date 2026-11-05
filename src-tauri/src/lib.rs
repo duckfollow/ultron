@@ -27,7 +27,8 @@ pub fn run() {
             ssh::rename_ssh_group,
             ssh::reorder_ssh_profile,
             ssh::delete_ssh_profile,
-            ssh::forget_ssh_password
+            ssh::forget_ssh_password,
+            ssh::reveal_ssh_password
         ])
         .build(tauri::generate_context!())
         .expect("Unable to build Ultron")

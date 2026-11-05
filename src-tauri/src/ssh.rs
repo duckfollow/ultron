@@ -475,6 +475,20 @@ pub async fn forget_ssh_password(
     .await
     .map_err(|_| "Keychain operation could not finish".to_string())?
 }
+#[tauri::command]
+pub async fn reveal_ssh_password(
+    app: AppHandle,
+    store: State<'_, ProfileStore>,
+    id: String,
+) -> Result<String, String> {
+    let profile = get(&app, &store, &id)?;
+    if !profile.remember_password {
+        return Err("No saved password for this connection".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || crate::credentials::reveal(&profile))
+        .await
+        .map_err(|_| "Keychain operation could not finish".to_string())?
+}
 pub fn get(app: &AppHandle, store: &ProfileStore, id: &str) -> Result<Profile, String> {
     let _guard = store.0.lock().unwrap();
     read(&path(app)?)?
