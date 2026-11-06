@@ -1130,9 +1130,34 @@ aside nav {
   justify-content: center;
   margin: 0 0 6px;
 }
-.sidebar.collapsed .ssh-connections .section-label button {
-  width: 32px;
-  height: 28px;
+.sidebar.collapsed .ssh-connections .connection-section-actions {
+  width: 100%;
+  align-items: center;
+}
+.sidebar.collapsed .ssh-connections .connection-section-actions > .icon-button,
+.sidebar.collapsed .ssh-connections .ssh-group-heading > .ssh-project-button {
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  margin: 0;
+  border-radius: 8px;
+}
+.sidebar.collapsed .ssh-connections .ssh-group-heading {
+  justify-content: center;
+}
+.sidebar.collapsed
+  .ssh-connections
+  .connection-section-actions
+  > .icon-button:hover:not(:disabled),
+.sidebar.collapsed
+  .ssh-connections
+  .ssh-group-heading
+  > .ssh-project-button:hover:not(:disabled) {
+  background: var(--theme-ffffff08-20263708);
 }
 .sidebar.collapsed .ssh-empty {
   display: none;

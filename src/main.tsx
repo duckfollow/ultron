@@ -494,6 +494,7 @@ function App() {
           error={profileError}
           loading={profilesLoading}
           onNew={() => setProfileDialog(newSshProfile())}
+          onImported={setProfiles}
           onEdit={setProfileDialog}
           onConnect={connectSsh}
           canSplit={canSplit}

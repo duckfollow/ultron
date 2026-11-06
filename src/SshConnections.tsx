@@ -1,4 +1,5 @@
 import { CopyToast } from "./CopyToast";
+import { ConnectionTransfer } from "./ConnectionTransfer";
 import { createPortal } from "react-dom";
 import { ConnectionToast } from "./ConnectionToast";
 import { SshConnectionDetails } from "./SshConnectionDetails";
@@ -11,7 +12,7 @@ import {
   Ellipsis,
   Plus,
   Server,
-  ServerPlus,
+  PlugZap,
   X,
   Search,
   Check,
@@ -20,6 +21,8 @@ import {
   GripVertical,
   Eye,
   Copy,
+  ArrowLeftRight,
+  ArrowUpFromLine,
 } from "lucide-react";
 import {
   profileAddress,
@@ -34,6 +37,7 @@ export function SshConnections({
   error,
   loading,
   onNew,
+  onImported,
   onEdit,
   onConnect,
   onDelete,
@@ -52,6 +56,7 @@ export function SshConnections({
   error: string;
   loading: boolean;
   onNew: () => void;
+  onImported: (profiles: SshProfile[]) => void;
   onEdit: (profile: SshProfile) => void;
   onConnect: (profile: SshProfile, target: ConnectTarget) => void;
   onDelete: (profile: SshProfile) => Promise<void>;
@@ -64,6 +69,11 @@ export function SshConnections({
     [deleting, setDeleting] = useState<SshProfile | null>(null),
     [deleteError, setDeleteError] = useState(""),
     [busy, setBusy] = useState(false);
+  const [transfer, setTransfer] = useState<{
+    mode: "import" | "export";
+    group: string | null;
+  } | null>(null);
+  const transferTrigger = useRef<HTMLButtonElement | null>(null);
   const [viewProfile, setViewProfile] = useState<SshProfile | null>(null);
   const [copyNotice, setCopyNotice] = useState("");
   const [copyError, setCopyError] = useState("");
@@ -380,14 +390,33 @@ export function SshConnections({
     <section className="ssh-connections" aria-label="Saved SSH connections">
       <div className="section-label">
         <span className="ssh-section-title">CONNECTIONS</span>
-        <button
-          className="icon-button"
-          aria-label="Add SSH connection"
-          title="Add SSH connection"
-          onClick={onNew}
-        >
-          {compact ? <ServerPlus size={16} /> : <Plus size={13} />}
-        </button>
+        <div className="connection-section-actions">
+          <button
+            type="button"
+            className="icon-button connection-transfer-trigger"
+            aria-label="Import or export SSH connections"
+            title="Import / export connections"
+            disabled={loading}
+            onClick={(event) => {
+              transferTrigger.current = event.currentTarget;
+              setTransfer({ mode: "import", group: null });
+            }}
+          >
+            <ArrowLeftRight size={compact ? 19 : 15} strokeWidth={1.75} />
+          </button>
+          <button
+            className="icon-button"
+            aria-label="Add SSH connection"
+            title="Add SSH connection"
+            onClick={onNew}
+          >
+            {compact ? (
+              <PlugZap size={19} strokeWidth={1.75} />
+            ) : (
+              <Plus size={15} strokeWidth={1.75} />
+            )}
+          </button>
+        </div>
       </div>
       {error && (
         <p className="ssh-list-error" role="alert">
@@ -434,7 +463,7 @@ export function SshConnections({
                     setOpenGroup(group.name);
                   }}
                 >
-                  <Folder size={compact ? 19 : 15} />
+                  <Folder size={compact ? 19 : 15} strokeWidth={1.75} />
                   <span>
                     {group.name || "Ungrouped"}
                     {group.profiles.find(
@@ -1016,6 +1045,17 @@ export function SshConnections({
                 <kbd>esc</kbd> to close
               </span>
               <button
+                type="button"
+                disabled={renameBusy || !selectedGroup?.profiles.length}
+                onClick={(event) => {
+                  transferTrigger.current = event.currentTarget;
+                  setMenu(null);
+                  setTransfer({ mode: "export", group: openGroup });
+                }}
+              >
+                <ArrowUpFromLine size={14} /> Export folder
+              </button>
+              <button
                 onClick={() => {
                   closePicker();
                   onNew();
@@ -1025,6 +1065,20 @@ export function SshConnections({
               </button>
             </footer>
           </dialog>,
+          document.body,
+        )}
+      {transfer &&
+        createPortal(
+          <ConnectionTransfer
+            profiles={profiles}
+            initialMode={transfer.mode}
+            initialGroup={transfer.group}
+            onImported={onImported}
+            onClose={() => {
+              setTransfer(null);
+              requestAnimationFrame(() => transferTrigger.current?.focus());
+            }}
+          />,
           document.body,
         )}
       {viewProfile &&

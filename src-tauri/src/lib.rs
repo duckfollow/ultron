@@ -1,5 +1,7 @@
+mod connection_transfer;
 pub mod credentials;
 mod monitor;
+mod secure_backup;
 mod ssh;
 mod terminal;
 mod updates;
@@ -28,7 +30,10 @@ pub fn run() {
             ssh::reorder_ssh_profile,
             ssh::delete_ssh_profile,
             ssh::forget_ssh_password,
-            ssh::reveal_ssh_password
+            ssh::reveal_ssh_password,
+            connection_transfer::preview_ssh_import,
+            connection_transfer::import_ssh_connections,
+            connection_transfer::export_ssh_connections
         ])
         .build(tauri::generate_context!())
         .expect("Unable to build Ultron")

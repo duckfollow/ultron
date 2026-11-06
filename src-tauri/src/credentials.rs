@@ -36,6 +36,13 @@ pub fn has(profile: &Profile) -> Result<bool, String> {
         Err(_) => Err("Unable to access the saved password in macOS Keychain".into()),
     }
 }
+pub(crate) fn read_optional(profile: &Profile) -> Result<Option<String>, String> {
+    match entry(&account(profile))?.get_password() {
+        Ok(value) => Ok(Some(value)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(_) => Err("Unable to read a saved password from macOS Keychain".into()),
+    }
+}
 pub fn reveal(profile: &Profile) -> Result<String, String> {
     entry(&account(profile))?
         .get_password()

@@ -15,6 +15,22 @@ components = []
 trees = {}
 remote_texts = {}
 
+# Reuse recorded texts for the same immutable crate version when registry
+# packages omit license files, so regeneration does not depend on GitHub uptime.
+cached_cargo_documents = {}
+previous = ROOT / 'THIRD_PARTY_NOTICES.txt'
+if previous.exists():
+    inventory, _, license_section = previous.read_text().partition('\nLICENSE TEXTS\n')
+    sections = re.split(r'\n===== ([0-9a-f]{16}) =====\n', license_section)
+    cached_texts = dict(zip(sections[1::2], sections[2::2]))
+    for block in inventory.split('\n\n'):
+        lines = block.splitlines()
+        if lines and lines[0].startswith('Cargo: '):
+            references = [re.fullmatch(r'(.+): ([0-9a-f]{16})', line) for line in lines[3:]]
+            documents = [(m[1], cached_texts[m[2]]) for m in references if m and m[2] in cached_texts]
+            if documents:
+                cached_cargo_documents[lines[0]] = documents
+
 
 def license_files(root):
     result = []
@@ -90,7 +106,10 @@ for package in metadata['packages']:
         extra = root / package['license_file']
         if extra.exists() and extra not in files:
             files.append(extra)
-    documents = [(p.name, p.read_text()) for p in files] if files else upstream(package, root)
+    documents = [(p.name, p.read_text()) for p in files] if files else (
+        cached_cargo_documents.get(f"Cargo: {package['name']} {package['version']}")
+        or upstream(package, root)
+    )
     add('Cargo: ' + package['name'], package['version'], package['license'],
         f"https://crates.io/crates/{package['name']}/{package['version']}", documents)
 

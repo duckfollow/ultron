@@ -17,7 +17,7 @@ pub enum AuthMethod {
     Password,
     Key,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Profile {
     pub id: String,
@@ -162,7 +162,7 @@ pub fn arguments(profile: &Profile, home: &Path) -> Result<Vec<String>, String> 
     args.push(profile.host.clone());
     Ok(args)
 }
-fn path(app: &AppHandle) -> Result<PathBuf, String> {
+pub(crate) fn path(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(app
         .path()
         .app_data_dir()
@@ -191,7 +191,7 @@ pub fn read(path: &Path) -> Result<Vec<Profile>, String> {
     }
     Ok(profiles)
 }
-fn write(path: &Path, profiles: &[Profile]) -> Result<(), String> {
+pub(crate) fn write(path: &Path, profiles: &[Profile]) -> Result<(), String> {
     let dir = path.parent().ok_or("Invalid profiles directory")?;
     fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     let temporary = dir.join(format!("ssh-profiles-{}.tmp", uuid::Uuid::new_v4()));

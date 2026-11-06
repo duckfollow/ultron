@@ -117,11 +117,23 @@ New/Edit SSH forms group server details and sign-in settings separately. In a **
 
 SCP/SFTP file-transfer controls are not part of this milestone. Sessions remain transient; saved SSH profiles survive app restarts.
 
-## Update checks
+## Connection backups
+
+Use **Import / export connections** beside the Connections add button to transfer an Ultron JSON file. Export all saved connections or choose one folder; each Connection folder also has **Export folder**. Import shows every entry and identifies duplicates by host (case-insensitive), port, and username. **Skip duplicates** is the default; **Replace duplicates** updates connection settings while keeping matched IDs and existing Keychain credentials associated with the endpoint. Plain JSON import does not read or change Keychain entries. Import never connects to servers or affects running sessions. New connections from plain JSON have no saved password. Choosing SSH key authentication disables saved-password use for that imported profile.
+
+Plain JSON exports contain connection names, folders, hosts, ports, usernames, authentication methods, and key file paths, with no passwords, Keychain flags, IDs, or private key contents. Key paths may need updating on another Mac. Plain JSON import accepts version 1 Ultron files up to 1 MB and 100 entries, rejects unknown fields or invalid data before saving, and prevents overwriting changes made after the preview. The total saved-connection limit remains 100.
+
+**Include saved passwords** is optional and off by default. Enabling it requires a backup password of at least 12 characters, entered twice. Ultron reads saved SSH login passwords from macOS Keychain only after **Export encrypted** is chosen, then encrypts the entire backup with Argon2id and XChaCha20-Poly1305. Private key contents and key passphrases are never exported. If a saved password cannot be read, export fails without writing a partial backup. The backup password is not stored and cannot be recovered.
+
+Encrypted backups (up to 4 MB) must be unlocked before the import preview appears. Decrypted SSH passwords stay in the native process and are not sent to the preview UI. The file is checked against the exact unlocked preview before import. Passwords for added or replaced connections are saved to Keychain only after **Import** is chosen; skipped connections keep their existing passwords. A failed import attempts to restore affected Keychain values, and reports any rollback failure explicitly. See [encrypted backup format and behavior](docs/encrypted-backups.md).
+
+## Appearance
 
 Open **Appearance** near the bottom of the sidebar to choose **System**, **Dark**, or **Light**. System is the default and follows macOS appearance changes. The preference is saved on this Mac. App surfaces and terminal palettes update immediately without restarting terminal sessions.
 
 The sidebar toggle before **Workspace** collapses or expands the left menu (also **⌘ B**). The icon beside **Utop** shows or hides the tab bar without changing the sidebar. Both preferences are saved locally, and transitions respect reduced-motion settings. Selecting or opening a tab scrolls its tab into view. Right-click a sidebar session to rename/change its color or close it; closing a split tab ends all its panes. Scrollbars are hidden in the sidebar, tab strip, and terminal, while scrolling remains available.
+
+## Update checks
 
 Open **Updates** at the bottom of the sidebar to view the installed version, update status, official release source, installation guidance, and release notes when a newer version is available. A **New** badge appears on the sidebar button when an update is available. Opening and closing the Updates dialog leaves terminal sessions running. Ultron checks the public `duckfollow/ultron` GitHub Releases feed automatically at most once per day, and allows manual checks at any time. When a newer release is available, **Download macOS update** opens its GitHub Release page in the default browser. **View current release** opens the installed version’s release page when no update is available. The dialog records the time of the last successful check for this app session. Updates are installed manually. The control remains accessible when the sidebar is collapsed.
 
