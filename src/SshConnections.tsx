@@ -30,6 +30,8 @@ import {
   type ConnectTarget,
   type SshProfile,
 } from "./ssh-model";
+const folderMenu = Symbol("folder menu");
+
 export function SshConnections({
   profiles,
   activeProfileId,
@@ -65,7 +67,7 @@ export function SshConnections({
   onReorder: (id: string, targetId: string, after: boolean) => Promise<void>;
   canSplit: (target: "columns" | "rows") => boolean;
 }) {
-  const [menu, setMenu] = useState<string | null>(null),
+  const [menu, setMenu] = useState<string | typeof folderMenu | null>(null),
     [deleting, setDeleting] = useState<SshProfile | null>(null),
     [deleteError, setDeleteError] = useState(""),
     [busy, setBusy] = useState(false);
@@ -543,6 +545,42 @@ export function SshConnections({
                     ? "connection"
                     : "connections"}
                 </p>
+              </div>
+              <div className="ssh-folder-actions">
+                <button
+                  type="button"
+                  className="icon-button"
+                  disabled={renameBusy || !selectedGroup?.profiles.length}
+                  aria-label="Folder actions"
+                  aria-haspopup="menu"
+                  aria-expanded={menu === folderMenu}
+                  onClick={(event) => {
+                    trigger.current = event.currentTarget;
+                    setMenu(menu === folderMenu ? null : folderMenu);
+                  }}
+                >
+                  <Ellipsis size={18} />
+                </button>
+                {menu === folderMenu && (
+                  <div
+                    ref={menuRef}
+                    className="ssh-profile-menu"
+                    role="menu"
+                    aria-label="Folder actions"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        transferTrigger.current = trigger.current;
+                        setMenu(null);
+                        setTransfer({ mode: "export", group: openGroup });
+                      }}
+                    >
+                      <ArrowUpFromLine size={14} /> Export folder
+                    </button>
+                  </div>
+                )}
               </div>
               <button
                 className="icon-button"
@@ -1044,17 +1082,6 @@ export function SshConnections({
               <span className="ssh-picker-footer-hint">
                 <kbd>esc</kbd> to close
               </span>
-              <button
-                type="button"
-                disabled={renameBusy || !selectedGroup?.profiles.length}
-                onClick={(event) => {
-                  transferTrigger.current = event.currentTarget;
-                  setMenu(null);
-                  setTransfer({ mode: "export", group: openGroup });
-                }}
-              >
-                <ArrowUpFromLine size={14} /> Export folder
-              </button>
               <button
                 onClick={() => {
                   closePicker();

@@ -119,7 +119,7 @@ SCP/SFTP file-transfer controls are not part of this milestone. Sessions remain 
 
 ## Connection backups
 
-Use **Import / export connections** beside the Connections add button to transfer an Ultron JSON file. Export all saved connections or choose one folder; each Connection folder also has **Export folder**. Import shows every entry and identifies duplicates by host (case-insensitive), port, and username. **Skip duplicates** is the default; **Replace duplicates** updates connection settings while keeping matched IDs and existing Keychain credentials associated with the endpoint. Plain JSON import does not read or change Keychain entries. Import never connects to servers or affects running sessions. New connections from plain JSON have no saved password. Choosing SSH key authentication disables saved-password use for that imported profile.
+Use **Import / export connections** beside the Connections add button to transfer an Ultron JSON file. Export all saved connections or choose one folder; each Connection folder also has **Export folder** in its **⋯** menu. Import shows every entry and identifies duplicates by host (case-insensitive), port, and username. **Skip duplicates** is the default; **Replace duplicates** updates connection settings while keeping matched IDs and existing Keychain credentials associated with the endpoint. Plain JSON import does not read or change Keychain entries. Import never connects to servers or affects running sessions. New connections from plain JSON have no saved password. Choosing SSH key authentication disables saved-password use for that imported profile.
 
 Plain JSON exports contain connection names, folders, hosts, ports, usernames, authentication methods, and key file paths, with no passwords, Keychain flags, IDs, or private key contents. Key paths may need updating on another Mac. Plain JSON import accepts version 1 Ultron files up to 1 MB and 100 entries, rejects unknown fields or invalid data before saving, and prevents overwriting changes made after the preview. The total saved-connection limit remains 100.
 
@@ -156,3 +156,22 @@ Select the **Utop** activity icon in the top-right corner to choose a new tab, a
 Choose a 1, 2, or 5 second refresh interval, or pause and resume. Sampling stops when the containing workspace tab is inactive or the page is hidden. Visible Utop panes continue refreshing while a neighboring terminal has focus; native snapshots are shared to avoid duplicate sampling. Graphs retain up to 2 minutes in memory. CPU and network rates warm up over two samples; long gaps start a new baseline. Network rates use the actual elapsed sample time and one selected interface, rather than summing interfaces. Process CPU uses 100% per logical core, so a process may exceed 100%; total CPU stays within 0–100%. Process memory is resident memory as reported by the OS. The table displays the first 200 matches after filtering and sorting.
 
 Disk capacities are shown per mount and are not summed because APFS volumes can share container capacity. Disk metadata refreshes approximately every 10 seconds. No `sudo`, remote monitoring, process termination, telemetry, or persistent metric history is used.
+
+
+### Rich Output
+
+Ultron automatically enables Rich Output in new local zsh sessions. For SSH, copy the integration script to the remote host and source it in the remote interactive zsh session:
+
+```zsh
+source /path/to/ultron-shell-integration.zsh
+```
+
+Type `docker ps`, `docker ps -a`, `docker images`, `docker compose ps`, `df`, or `df -h` as usual. Ultron shows a sortable, searchable table for supported output formats. Disk views include a usage meter for each filesystem. Use **Raw Output** to view or copy the captured text and **Back to terminal** to return to the shell.
+
+Use `docker logs <container>` for a searchable log viewer. Add `--tail 100` before the container name to limit output, or use `docker logs --tail 100 --timestamps <container>` to display timestamps separately. Follow mode (`-f`) stays in the terminal.
+
+`git status` shows the branch and groups changes into staged, unstaged, untracked, and conflicts when Git returns its standard English status output.
+
+`git --no-pager log -n 20` shows recent commits with refs, author, date, and commit message. Plain `git log` can also show this view when Git emits its standard log without an interactive pager.
+
+The integration runs the original command once. It captures the terminal stream (combined stdout and stderr) and the shell exit status. Custom formats use Raw Output. Captures beyond 512 Ki UTF-16 code units use terminal scrollback.

@@ -1,7 +1,16 @@
+import { RichOutput } from "./RichOutput";
+import { richCapture, type RichResult } from "./rich-output";
 import { getResolvedTheme, useAppearance } from "./theme";
 import { terminalThemes } from "./theme-model";
 import { prepareSnippet } from "./snippets-model";
-import { Monitor, Server, RotateCw, Pencil, AlertCircle } from "lucide-react";
+import {
+  Monitor,
+  Server,
+  RotateCw,
+  Pencil,
+  AlertCircle,
+  Info,
+} from "lucide-react";
 import { sshFailure } from "./ssh-status";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
@@ -61,6 +70,11 @@ export function TerminalPane({
     title: string;
     details: string;
   } | null>(null);
+  const [rich, setRich] = useState<{
+    result: RichResult;
+    revision: number;
+  } | null>(null);
+  const [showRich, setShowRich] = useState(false);
   const host = useRef<HTMLDivElement>(null);
   const runtime = useRef<{ term: Terminal; fit: FitAddon } | null>(null);
   const isActive = useRef(focused);
@@ -71,6 +85,16 @@ export function TerminalPane({
     setConnecting(Boolean(profileId));
     setHasOutput(false);
     setFailure(null);
+    setRich(null);
+    setShowRich(false);
+    let revision = 0;
+    const capture = richCapture((result) => {
+      if (result.code === null && !result.truncated) {
+        revision++;
+        setShowRich(true);
+      }
+      setRich({ result, revision });
+    });
     const startedAt = performance.now();
     let animationTimer: ReturnType<typeof setTimeout> | undefined;
     let titleTimer: ReturnType<typeof setTimeout> | undefined;
@@ -168,20 +192,22 @@ export function TerminalPane({
     output.onmessage = (event) => {
       if (disposed) return;
       if (event.type === "data") {
+        const bytes = new Uint8Array(event.bytes);
+        capture.push(bytes);
         if (profileId) {
           diagnosticTail = (
-            diagnosticTail +
-            decoder.decode(new Uint8Array(event.bytes), { stream: true })
+            diagnosticTail + decoder.decode(bytes, { stream: true })
           ).slice(-16384);
           // Any SSH output may be a password, OTP, or host-key question. Never cover it.
           if (event.bytes.length) revealTerminal();
         }
-        term.write(new Uint8Array(event.bytes), () => {
+        term.write(bytes, () => {
           pendingAck += event.bytes.length;
           acknowledge();
         });
       } else if (event.type === "exit") {
         ended = true;
+        capture.finish();
         setConnecting(false);
         if (profileId) setFailure(sshFailure(diagnosticTail, event.code));
         term.write(
@@ -275,7 +301,7 @@ export function TerminalPane({
     <>
       <div
         ref={host}
-        className={`terminal-host ${visible ? "active" : ""}`}
+        className={`terminal-host ${visible ? "active" : ""}${showRich && rich ? " with-rich-output" : ""}`}
         onPointerDown={(event) => {
           if (event.button !== 0) return;
           onFocus();
@@ -286,6 +312,28 @@ export function TerminalPane({
         onFocusCapture={onFocus}
         aria-label="Terminal session"
       />
+      {visible &&
+        rich &&
+        (showRich ? (
+          <RichOutput
+            key={rich.revision}
+            result={rich.result}
+            onClose={() => {
+              setShowRich(false);
+              runtime.current?.term.focus();
+            }}
+          />
+        ) : (
+          <button
+            className="icon-button rich-output-reopen"
+            title="Show command output"
+            aria-label="Show command output"
+            type="button"
+            onClick={() => setShowRich(true)}
+          >
+            <Info size={16} aria-hidden="true" />
+          </button>
+        ))}
       {visible && connecting && (
         <div
           className={`ssh-connecting ${hasOutput ? "compact" : ""}`}

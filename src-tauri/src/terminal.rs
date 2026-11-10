@@ -20,7 +20,59 @@ struct Session {
     killer: Mutex<Box<dyn ChildKiller + Send + Sync>>,
     flow: (Mutex<Flow>, Condvar),
     _askpass: Option<crate::credentials::Askpass>,
+    _zsh_startup: Option<ZshStartup>,
 }
+struct ZshStartup(std::path::PathBuf);
+
+impl Drop for ZshStartup {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+#[cfg(unix)]
+impl ZshStartup {
+    fn prepare(cmd: &mut CommandBuilder) -> std::io::Result<Self> {
+        use std::os::unix::fs::DirBuilderExt;
+
+        let dir = std::env::temp_dir().join(format!("ultron-zsh-{}", uuid::Uuid::new_v4()));
+        std::fs::DirBuilder::new().mode(0o700).create(&dir)?;
+        let startup = Self(dir);
+        let bootstrap = concat!(
+            r#"
+if (( ${+_ULTRON_ORIGINAL_ZDOTDIR} )); then
+    ZDOTDIR=$_ULTRON_ORIGINAL_ZDOTDIR
+else
+    unset ZDOTDIR
+fi
+unset _ULTRON_ORIGINAL_ZDOTDIR
+if [[ -r "${ZDOTDIR-$HOME}/.zshenv" ]]; then
+    builtin source "${ZDOTDIR-$HOME}/.zshenv"
+fi
+if [[ -o interactive && -o rcs ]]; then
+    _ultron_install_rich_output() {
+        autoload -Uz add-zsh-hook
+        add-zsh-hook -d precmd _ultron_install_rich_output
+"#,
+            include_str!("../../scripts/ultron-shell-integration.zsh"),
+            r#"
+    }
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _ultron_install_rich_output
+fi
+"#
+        );
+        std::fs::write(startup.0.join(".zshenv"), bootstrap)?;
+        if let Some(original) = std::env::var_os("ZDOTDIR") {
+            cmd.env("_ULTRON_ORIGINAL_ZDOTDIR", original);
+        } else {
+            cmd.env_remove("_ULTRON_ORIGINAL_ZDOTDIR");
+        }
+        cmd.env("ZDOTDIR", &startup.0);
+        Ok(startup)
+    }
+}
+
 #[derive(Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Output {
@@ -125,6 +177,15 @@ pub fn open_terminal(
         cmd.arg("-l");
         cmd.arg("-i");
     }
+    #[cfg(unix)]
+    let zsh_startup =
+        if profile.is_none() && std::path::Path::new(&shell).file_name() == Some("zsh".as_ref()) {
+            ZshStartup::prepare(&mut cmd).ok()
+        } else {
+            None
+        };
+    #[cfg(not(unix))]
+    let zsh_startup = None;
     let askpass = if let Some(profile) = profile
         .as_ref()
         .filter(|p| p.remember_password && p.auth_method != crate::ssh::AuthMethod::Key)
@@ -162,6 +223,7 @@ pub fn open_terminal(
     };
     let session = Arc::new(Session {
         _askpass: askpass,
+        _zsh_startup: zsh_startup,
         master: Mutex::new(pair.master),
         writer: Mutex::new(writer),
         killer: Mutex::new(child.clone_killer()),
@@ -342,6 +404,7 @@ mod tests {
             let writer = pair.master.take_writer().unwrap();
             let session = Arc::new(Session {
                 _askpass: None,
+                _zsh_startup: None,
                 master: Mutex::new(pair.master),
                 writer: Mutex::new(writer),
                 killer: Mutex::new(child.clone_killer()),
