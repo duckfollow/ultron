@@ -13,7 +13,8 @@ import {
   useLayoutEffect,
   type CSSProperties,
 } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { SshConnections } from "./SshConnections";
 import { SshProfileDialog } from "./SshProfileDialog";
 import {
@@ -70,6 +71,25 @@ import "./theme-palette.css";
 initializeTheme();
 const firstTab = makeTab(1);
 function App() {
+  useEffect(() => {
+    if (!isTauri()) return;
+
+    // Hidden webviews can pause animation frames before the window is shown.
+    function showWindow() {
+      window.clearTimeout(fallback);
+      window.cancelAnimationFrame(frame);
+      void getCurrentWindow().show().catch(console.error);
+    }
+    let frame = window.requestAnimationFrame(() => {
+      frame = window.requestAnimationFrame(showWindow);
+    });
+    const fallback = window.setTimeout(showWindow, 150);
+    return () => {
+      window.clearTimeout(fallback);
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const [sessionMenu, setSessionMenu] = useState<{
     tabId: string;
     x: number;

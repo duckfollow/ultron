@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Local terminal window",
   "windows": ["main"],
-  "permissions": ["core:default", "dialog:allow-open", "dialog:allow-save"]
+  "permissions": ["core:default", "core:window:allow-show", "dialog:allow-open", "dialog:allow-save"]
 }
