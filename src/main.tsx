@@ -15,6 +15,7 @@ import {
 } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { SshConnectionDetails } from "./SshConnectionDetails";
 import { SshConnections } from "./SshConnections";
 import { SshProfileDialog } from "./SshProfileDialog";
 import {
@@ -43,6 +44,7 @@ import {
   SquareTerminal,
   BookOpen,
   Activity,
+  Eye,
 } from "lucide-react";
 import type { TerminalHandle } from "./TerminalPane";
 import {
@@ -153,6 +155,8 @@ function App() {
     [query, setQuery] = useState(""),
     [help, setHelp] = useState(false),
     [appearance, setAppearance] = useState<string | null>(null);
+  const [viewProfile, setViewProfile] = useState<SshProfile | null>(null);
+  const viewProfileTrigger = useRef<HTMLButtonElement>(null);
   const [profiles, setProfiles] = useState<SshProfile[]>([]),
     [profileError, setProfileError] = useState(""),
     [profilesLoading, setProfilesLoading] = useState(true),
@@ -842,6 +846,18 @@ function App() {
                 (pane?.info?.cwd ?? "LOCAL SHELL")
               )}
             </small>
+            {pane?.sshProfile && !utopActive && (
+              <button
+                ref={viewProfileTrigger}
+                type="button"
+                className="icon-button"
+                aria-label="View SSH connection details"
+                title="View SSH connection details"
+                onClick={() => setViewProfile(pane.sshProfile ?? null)}
+              >
+                <Eye size={15} />
+              </button>
+            )}
           </span>
           <div
             className="terminal-toolbar-actions"
@@ -1095,6 +1111,22 @@ function App() {
             terminal.insertSnippet(command);
             setSnippetsOpen(false);
             requestAnimationFrame(() => terminal.focus());
+          }}
+        />
+      )}
+      {viewProfile && (
+        <SshConnectionDetails
+          profile={viewProfile}
+          onClose={() => {
+            setViewProfile(null);
+            requestAnimationFrame(() => viewProfileTrigger.current?.focus());
+          }}
+          onEdit={() => {
+            setViewProfile(null);
+            setProfileDialog(
+              profiles.find((profile) => profile.id === viewProfile.id) ??
+                viewProfile,
+            );
           }}
         />
       )}
